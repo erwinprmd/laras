@@ -12,7 +12,6 @@ staff.addEventListener("click", (event) => {
     const note = document.createElement("span");
 
     note.className = "note";
-
     note.textContent = "●";
 
     note.style.left = `${x}px`;
