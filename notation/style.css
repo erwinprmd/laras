@@ -143,6 +143,15 @@ body {
 }
 
 .note {
+
+    .stem {
+    position: absolute;
+    width: 2px;
+    height: 32px;
+    background: var(--text);
+    right: -1px;
+    bottom: 4px;
+}
     position: absolute;
     width: 14px;
     height: 10px;
