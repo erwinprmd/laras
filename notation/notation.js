@@ -41,6 +41,11 @@ const pitch = pitchNames[
     note.className = "note";
     note.textContent = "";
     note.dataset.pitch = pitch;
+    const stem = document.createElement("span");
+
+stem.className = "stem";
+
+note.appendChild(stem);
 
     note.style.left = `${x}px`;
     note.style.top = `${y}px`;
