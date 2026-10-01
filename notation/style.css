@@ -1,0 +1,185 @@
+:root {
+    --bg: #f7f5f0;
+    --text: #1c211f;
+    --muted: #65735e;
+    --border: rgba(28, 33, 31, 0.12);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+
+    background: var(--bg);
+    color: var(--text);
+
+    font-family: Arial, sans-serif;
+}
+
+.notation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 22px 5%;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.notation-brand {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    font-size: 0.9rem;
+}
+
+.notation-brand a {
+    color: var(--text);
+
+    text-decoration: none;
+
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.notation-brand span:last-child {
+    color: var(--muted);
+}
+
+.back-link {
+    color: var(--text);
+
+    font-size: 0.85rem;
+
+    text-decoration: none;
+}
+
+.notation-workspace {
+    width: min(1200px, calc(100% - 40px));
+
+    margin: 0 auto;
+
+    padding: 100px 0;
+}
+
+.eyebrow {
+    margin: 0 0 20px;
+
+    color: var(--muted);
+
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    letter-spacing: 0.16em;
+}
+
+.workspace-intro h1 {
+    margin: 0;
+
+    font-size: clamp(3.5rem, 8vw, 7rem);
+
+    line-height: 0.9;
+
+    letter-spacing: -0.06em;
+}
+
+.workspace-intro p:last-child {
+    max-width: 550px;
+
+    margin-top: 35px;
+
+    color: #59615d;
+
+    font-size: 1.05rem;
+}
+
+.notation-editor {
+    margin-top: 100px;
+
+    border: 1px solid var(--border);
+
+    background: white;
+}
+
+.editor-toolbar {
+    display: flex;
+    gap: 8px;
+
+    padding: 15px;
+
+    border-bottom: 1px solid var(--border);
+
+    background: var(--bg);
+}
+
+.editor-toolbar button {
+    padding: 9px 14px;
+
+    border: 1px solid var(--border);
+    border-radius: 6px;
+
+    background: white;
+
+    color: var(--text);
+
+    cursor: pointer;
+}
+
+.staff-area {
+    min-height: 400px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 70px 50px;
+}
+
+.staff {
+    width: 100%;
+}
+
+.staff div {
+    height: 1px;
+
+    margin: 22px 0;
+
+    background: var(--text);
+}
+
+footer {
+    padding: 40px 5%;
+
+    border-top: 1px solid var(--border);
+
+    color: var(--muted);
+
+    font-size: 0.8rem;
+}
+
+@media (max-width: 700px) {
+
+    .notation-header {
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .notation-brand {
+        flex-wrap: wrap;
+    }
+
+    .notation-workspace {
+        padding: 70px 0;
+    }
+
+    .editor-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .staff-area {
+        padding: 50px 20px;
+    }
+
+}
