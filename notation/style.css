@@ -138,7 +138,15 @@ body {
 }
 
 .staff {
+    position: relative;
     width: 100%;
+}
+
+.note {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: 1.4rem;
+    line-height: 1;
 }
 
 .staff div {
