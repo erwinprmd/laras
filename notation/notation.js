@@ -39,7 +39,8 @@ const pitch = pitchNames[
     const note = document.createElement("span");
 
     note.className = "note";
-    note.textContent = "●";
+    note.textContent = "";
+    note.dataset.pitch = pitch;
 
     note.style.left = `${x}px`;
     note.style.top = `${y}px`;
