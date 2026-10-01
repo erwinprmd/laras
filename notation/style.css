@@ -144,9 +144,12 @@ body {
 
 .note {
     position: absolute;
-    transform: translate(-50%, -50%);
-    font-size: 1.4rem;
-    line-height: 1;
+    width: 14px;
+    height: 10px;
+    border: 2px solid var(--text);
+    border-radius: 50%;
+    background: var(--bg);
+    transform: translate(-50%, -50%) rotate(-12deg);
 }
 
 .staff div {
