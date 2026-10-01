@@ -267,6 +267,14 @@ footer p {
 
 @media (max-width: 700px) {
 
+    .tools-grid {
+    grid-template-columns: 1fr;
+}
+
+.tool-item {
+    min-height: auto;
+}
+
     .hero {
         padding: 100px 0 120px;
     }
