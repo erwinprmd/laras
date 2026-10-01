@@ -4,6 +4,10 @@ const notes = [];
 
 staff.addEventListener("click", (event) => {
 
+    if (event.target.classList.contains("note")) {
+        return;
+    }
+
     const rect = staff.getBoundingClientRect();
 
     const x = event.clientX - rect.left;
