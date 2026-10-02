@@ -15,13 +15,33 @@ const staff = document.querySelector(".staff");
 
 const notes = [];
 
+let selectedDuration = "quarter";
+
 let draggedNote = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 let suppressClickUntil = 0;
 let hasDragged = false;
 
+const durationButtons = document.querySelectorAll(
+    "[data-duration]"
+);
 
+durationButtons.forEach(button => {
+
+    button.addEventListener("click", () => {
+
+        selectedDuration =
+            button.dataset.duration;
+
+        console.log(
+            "Duration selected:",
+            selectedDuration
+        );
+
+    });
+
+});
 // =========================
 // CLICK STAFF / NOTE
 // =========================
@@ -95,7 +115,7 @@ staff.addEventListener("click", (event) => {
     x,
     y,
     pitch,
-    duration: "quarter",
+    duration: selectedDuration,
     element: note
 });
 
