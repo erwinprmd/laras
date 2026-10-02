@@ -18,17 +18,18 @@ const notes = [];
 let draggedNote = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
-let didDrag = false;
+let ignoreNextClick = false;
 
 staff.addEventListener("click", (event) => {
 
-    // Setelah drag, abaikan click yang otomatis muncul
-    if (didDrag) {
-        didDrag = false;
+    // Abaikan click yang muncul setelah drag
+    if (ignoreNextClick) {
+        ignoreNextClick = false;
         return;
     }
 
     // Klik note = hapus note
+    
     if (event.target.closest(".note")) {
 
         const noteElement = event.target.closest(".note");
@@ -111,7 +112,6 @@ staff.addEventListener("pointerdown", (event) => {
     }
 
     draggedNote = noteElement;
-    didDrag = false;
 
     const rect = noteElement.getBoundingClientRect();
 
@@ -127,7 +127,6 @@ staff.addEventListener("pointermove", (event) => {
     if (!draggedNote) {
         return;
     }
-    didDrag = true;
 
     const staffRect = staff.getBoundingClientRect();
 
