@@ -19,7 +19,7 @@ const measures = [
     {
         number: 1,
         startX: 100,
-        endX: null
+        endX: 1000
     }
 ];
 
