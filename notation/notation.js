@@ -17,7 +17,23 @@ const notes = [];
 
 staff.addEventListener("click", (event) => {
 
-    if (event.target.classList.contains("note")) {
+    // Klik note = hapus note
+    if (event.target.closest(".note")) {
+
+        const noteElement = event.target.closest(".note");
+
+        const index = notes.findIndex(note =>
+            note.element === noteElement
+        );
+
+        if (index !== -1) {
+            notes.splice(index, 1);
+        }
+
+        noteElement.remove();
+
+        console.log("Note removed");
+
         return;
     }
 
