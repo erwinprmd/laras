@@ -120,10 +120,11 @@ staff.addEventListener("click", (event) => {
 });
 
     console.log("Note added:", {
-        x,
-        y,
-        pitch
-    });
+    x,
+    y,
+    pitch,
+    duration: selectedDuration
+});
 
 });
 
