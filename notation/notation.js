@@ -77,10 +77,11 @@ const pitch = pitchNames[
     staff.appendChild(note);
 
     notes.push({
-        x,
-        y,
-        pitch
-    });
+    x,
+    y,
+    pitch,
+    element: note
+});
 
     console.log("Note added:", {
         x,
