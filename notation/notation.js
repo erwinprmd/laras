@@ -30,12 +30,17 @@ staff.addEventListener("click", (event) => {
     const y = Math.round(rawY / staffStep) * staffStep;
 
     // Tentukan posisi nada pada staff
-    const step = Math.round(y / staffStep);
+    // Garis staff paling atas berada sekitar 22px
+const topLineY = lineSpacing;
 
-    // Tentukan pitch
-    const pitch = pitchNames[
-        ((-step % 7) + 7) % 7
-    ];
+const step = Math.round(
+    (y - topLineY) / staffStep
+);
+
+// Garis paling atas = F
+const pitch = pitchNames[
+    ((3 - step) % 7 + 7) % 7
+];
 
     const note = document.createElement("span");
 
