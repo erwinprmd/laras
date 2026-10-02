@@ -18,24 +18,27 @@ const notes = [];
 let draggedNote = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
-let ignoreNextClick = false;
+let suppressClickUntil = 0;
+
+
+// =========================
+// CLICK STAFF / NOTE
+// =========================
 
 staff.addEventListener("click", (event) => {
 
-    // Abaikan click yang muncul setelah drag
-    if (ignoreNextClick) {
-        ignoreNextClick = false;
+    // Abaikan click otomatis setelah drag
+    if (Date.now() < suppressClickUntil) {
         return;
     }
 
     // Klik note = hapus note
-    
     if (event.target.closest(".note")) {
 
         const noteElement = event.target.closest(".note");
 
-        const index = notes.findIndex(note =>
-            note.element === noteElement
+        const index = notes.findIndex(
+            note => note.element === noteElement
         );
 
         if (index !== -1) {
@@ -57,18 +60,17 @@ staff.addEventListener("click", (event) => {
     // Snap ke garis atau spasi
     const y = Math.round(rawY / staffStep) * staffStep;
 
-    // Tentukan posisi nada pada staff
-    // Garis staff paling atas berada sekitar 22px
-const topLineY = lineSpacing;
+    // Garis staff paling atas berada di 22px
+    const topLineY = lineSpacing;
 
-const step = Math.round(
-    (y - topLineY) / staffStep
-);
+    const step = Math.round(
+        (y - topLineY) / staffStep
+    );
 
-// Garis paling atas = F
-const pitch = pitchNames[
-    ((3 - step) % 7 + 7) % 7
-];
+    // Garis paling atas = F
+    const pitch = pitchNames[
+        ((3 - step) % 7 + 7) % 7
+    ];
 
     const note = document.createElement("span");
 
@@ -89,11 +91,11 @@ const pitch = pitchNames[
     staff.appendChild(note);
 
     notes.push({
-    x,
-    y,
-    pitch,
-    element: note
-});
+        x,
+        y,
+        pitch,
+        element: note
+    });
 
     console.log("Note added:", {
         x,
@@ -102,6 +104,11 @@ const pitch = pitchNames[
     });
 
 });
+
+
+// =========================
+// START DRAG
+// =========================
 
 staff.addEventListener("pointerdown", (event) => {
 
@@ -122,6 +129,11 @@ staff.addEventListener("pointerdown", (event) => {
 
 });
 
+
+// =========================
+// DRAG NOTE
+// =========================
+
 staff.addEventListener("pointermove", (event) => {
 
     if (!draggedNote) {
@@ -130,15 +142,29 @@ staff.addEventListener("pointermove", (event) => {
 
     const staffRect = staff.getBoundingClientRect();
 
-    const x = event.clientX - staffRect.left - dragOffsetX;
-    const rawY = event.clientY - staffRect.top - dragOffsetY;
+    const x =
+        event.clientX -
+        staffRect.left -
+        dragOffsetX;
 
-    const y = Math.round(rawY / staffStep) * staffStep;
+    const rawY =
+        event.clientY -
+        staffRect.top -
+        dragOffsetY;
+
+    const y =
+        Math.round(rawY / staffStep) *
+        staffStep;
 
     draggedNote.style.left = `${x}px`;
     draggedNote.style.top = `${y}px`;
 
 });
+
+
+// =========================
+// END DRAG
+// =========================
 
 staff.addEventListener("pointerup", (event) => {
 
@@ -148,10 +174,13 @@ staff.addEventListener("pointerup", (event) => {
 
     const noteElement = draggedNote;
 
-    const staffRect = staff.getBoundingClientRect();
+    const x = parseFloat(
+        noteElement.style.left
+    );
 
-    const x = parseFloat(noteElement.style.left);
-    const y = parseFloat(noteElement.style.top);
+    const y = parseFloat(
+        noteElement.style.top
+    );
 
     const topLineY = lineSpacing;
 
@@ -168,9 +197,11 @@ staff.addEventListener("pointerup", (event) => {
     );
 
     if (noteData) {
+
         noteData.x = x;
         noteData.y = y;
         noteData.pitch = pitch;
+
     }
 
     noteElement.dataset.pitch = pitch;
@@ -180,6 +211,9 @@ staff.addEventListener("pointerup", (event) => {
         y,
         pitch
     });
+
+    // Abaikan click yang muncul setelah drag
+    suppressClickUntil = Date.now() + 300;
 
     draggedNote = null;
 
