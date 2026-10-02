@@ -177,6 +177,7 @@ body {
 .staff {
     position: relative;
     width: 100%;
+    padding-left: 100px;
 }
 
 .note {
