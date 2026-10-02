@@ -143,6 +143,7 @@ staff.addEventListener("click", (event) => {
     y,
     pitch,
     duration: selectedDuration,
+    measure: 1,
     element: note
 });
 
