@@ -18,7 +18,7 @@ const notes = [];
 const measures = [
     {
         number: 1,
-        startX: 0,
+        startX: 100,
         endX: null
     }
 ];
