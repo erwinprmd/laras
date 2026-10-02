@@ -165,6 +165,7 @@ body {
 }
 
 .staff-area {
+    position: relative;
     min-height: 400px;
 
     display: flex;
