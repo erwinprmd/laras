@@ -54,6 +54,17 @@ const durationBeats = {
     eighth: 0.5
 };
 
+function getMeasureBeats(measureNumber) {
+
+    return notes
+        .filter(note => note.measure === measureNumber)
+        .reduce(
+            (total, note) => total + note.beats,
+            0
+        );
+
+}
+
 console.log("Time Signature:", {
     beats: timeSignature.beats,
     beatUnit: timeSignature.beatUnit,
@@ -177,6 +188,11 @@ staff.addEventListener("click", (event) => {
     measure: 1,
     element: note
 });
+
+    console.log(
+    "Measure 1 beats:",
+    getMeasureBeats(1)
+);
 
     console.log("Note added:", {
     x,
