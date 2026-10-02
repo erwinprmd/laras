@@ -23,6 +23,17 @@ const measures = [
     }
 ];
 
+const firstMeasure = measures[0];
+
+const measureWidth =
+    firstMeasure.endX - firstMeasure.startX;
+
+console.log("Measure 1:", {
+    startX: firstMeasure.startX,
+    endX: firstMeasure.endX,
+    width: measureWidth
+});
+
 let selectedDuration = "quarter";
 
 let timeSignature = {
