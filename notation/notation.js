@@ -92,11 +92,12 @@ staff.addEventListener("click", (event) => {
     staff.appendChild(note);
 
     notes.push({
-        x,
-        y,
-        pitch,
-        element: note
-    });
+    x,
+    y,
+    pitch,
+    duration: "quarter",
+    element: note
+});
 
     console.log("Note added:", {
         x,
