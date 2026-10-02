@@ -95,7 +95,7 @@ staff.addEventListener("click", (event) => {
 
     const note = document.createElement("span");
 
-    note.className = "note quarter";
+    note.className = `note ${selectedDuration}`;
     note.textContent = "";
 
     note.dataset.pitch = pitch;
