@@ -182,7 +182,8 @@ staff.addEventListener("click", (event) => {
     x,
     y,
     pitch,
-    duration: selectedDuration
+    duration: selectedDuration,
+    beats: durationBeats[selectedDuration]
 });
 
 });
