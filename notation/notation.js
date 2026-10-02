@@ -102,9 +102,19 @@ staff.addEventListener("click", (event) => {
 
     const stem = document.createElement("span");
 
-    stem.className = "stem";
+stem.className = "stem";
 
-    note.appendChild(stem);
+note.appendChild(stem);
+
+if (selectedDuration === "eighth") {
+
+    const flag = document.createElement("span");
+
+    flag.className = "flag";
+
+    stem.appendChild(flag);
+
+}
 
     note.style.left = `${x}px`;
     note.style.top = `${y}px`;
