@@ -17,6 +17,11 @@ const notes = [];
 
 let selectedDuration = "quarter";
 
+let timeSignature = {
+    beats: 4,
+    beatUnit: 4
+};
+
 let draggedNote = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
