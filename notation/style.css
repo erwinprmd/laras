@@ -145,20 +145,21 @@ body {
 .note {
 
     .stem {
-    position: absolute;
-    width: 2px;
-    height: 32px;
-    background: var(--text);
-    right: -1px;
-    bottom: 4px;
-}
+        position: absolute;
+        width: 2px;
+        height: 32px;
+        background: var(--text);
+        right: -1px;
+        bottom: 4px;
+    }
+
     position: absolute;
     width: 14px;
     height: 10px;
     border: 2px solid var(--text);
     border-radius: 50%;
-    background: var(--bg);
-    transform: translate(-50%, -50%) rotate(-12deg);
+    background: var(--text);
+    transform: translate(-50%, -50%);
 }
 
 .staff div {
