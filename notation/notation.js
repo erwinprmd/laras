@@ -120,6 +120,7 @@ staff.addEventListener("pointerdown", (event) => {
     }
 
     draggedNote = noteElement;
+    hasDragged = false;
 
     const rect = noteElement.getBoundingClientRect();
 
