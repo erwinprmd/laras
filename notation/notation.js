@@ -45,6 +45,21 @@ let timeSignature = {
     beatUnit: 4
 };
 
+const beatDuration = 1 / timeSignature.beatUnit;
+
+const durationBeats = {
+    whole: 4,
+    half: 2,
+    quarter: 1,
+    eighth: 0.5
+};
+
+console.log("Time Signature:", {
+    beats: timeSignature.beats,
+    beatUnit: timeSignature.beatUnit,
+    beatDuration
+});
+
 let draggedNote = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
@@ -158,6 +173,7 @@ staff.addEventListener("click", (event) => {
     y,
     pitch,
     duration: selectedDuration,
+    beats: durationBeats[selectedDuration],
     measure: 1,
     element: note
 });
