@@ -100,19 +100,23 @@ staff.addEventListener("click", (event) => {
 
     note.dataset.pitch = pitch;
 
+    if (selectedDuration !== "whole") {
+
     const stem = document.createElement("span");
 
-stem.className = "stem";
+    stem.className = "stem";
 
-note.appendChild(stem);
+    note.appendChild(stem);
 
-if (selectedDuration === "eighth") {
+    if (selectedDuration === "eighth") {
 
-    const flag = document.createElement("span");
+        const flag = document.createElement("span");
 
-    flag.className = "flag";
+        flag.className = "flag";
 
-    stem.appendChild(flag);
+        stem.appendChild(flag);
+
+    }
 
 }
 
