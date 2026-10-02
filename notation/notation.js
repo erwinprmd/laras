@@ -141,6 +141,7 @@ staff.addEventListener("pointermove", (event) => {
     if (!draggedNote) {
         return;
     }
+    hasDragged = true;
 
     const staffRect = staff.getBoundingClientRect();
 
@@ -208,6 +209,8 @@ staff.addEventListener("pointerup", (event) => {
 
     noteElement.dataset.pitch = pitch;
 
+    if (hasDragged) {
+
     console.log("Note moved:", {
         x,
         y,
@@ -217,6 +220,9 @@ staff.addEventListener("pointerup", (event) => {
     // Abaikan click yang muncul setelah drag
     suppressClickUntil = Date.now() + 300;
 
-    draggedNote = null;
+}
+
+draggedNote = null;
+hasDragged = false;
 
 });
