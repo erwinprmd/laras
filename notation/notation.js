@@ -34,6 +34,10 @@ console.log("Measure 1:", {
     width: measureWidth
 });
 
+const barline = document.querySelector(".barline");
+
+barline.style.left = `${firstMeasure.endX}px`;
+
 let selectedDuration = "quarter";
 
 let timeSignature = {
