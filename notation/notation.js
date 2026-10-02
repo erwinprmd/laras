@@ -15,6 +15,10 @@ const staff = document.querySelector(".staff");
 
 const notes = [];
 
+let draggedNote = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
 staff.addEventListener("click", (event) => {
 
     // Klik note = hapus note
@@ -88,5 +92,87 @@ const pitch = pitchNames[
         y,
         pitch
     });
+
+});
+
+staff.addEventListener("pointerdown", (event) => {
+
+    const noteElement = event.target.closest(".note");
+
+    if (!noteElement) {
+        return;
+    }
+
+    draggedNote = noteElement;
+
+    const rect = noteElement.getBoundingClientRect();
+
+    dragOffsetX = event.clientX - rect.left;
+    dragOffsetY = event.clientY - rect.top;
+
+    draggedNote.setPointerCapture(event.pointerId);
+
+});
+
+staff.addEventListener("pointermove", (event) => {
+
+    if (!draggedNote) {
+        return;
+    }
+
+    const staffRect = staff.getBoundingClientRect();
+
+    const x = event.clientX - staffRect.left - dragOffsetX;
+    const rawY = event.clientY - staffRect.top - dragOffsetY;
+
+    const y = Math.round(rawY / staffStep) * staffStep;
+
+    draggedNote.style.left = `${x}px`;
+    draggedNote.style.top = `${y}px`;
+
+});
+
+staff.addEventListener("pointerup", (event) => {
+
+    if (!draggedNote) {
+        return;
+    }
+
+    const noteElement = draggedNote;
+
+    const staffRect = staff.getBoundingClientRect();
+
+    const x = parseFloat(noteElement.style.left);
+    const y = parseFloat(noteElement.style.top);
+
+    const topLineY = lineSpacing;
+
+    const step = Math.round(
+        (y - topLineY) / staffStep
+    );
+
+    const pitch = pitchNames[
+        ((3 - step) % 7 + 7) % 7
+    ];
+
+    const noteData = notes.find(
+        note => note.element === noteElement
+    );
+
+    if (noteData) {
+        noteData.x = x;
+        noteData.y = y;
+        noteData.pitch = pitch;
+    }
+
+    noteElement.dataset.pitch = pitch;
+
+    console.log("Note moved:", {
+        x,
+        y,
+        pitch
+    });
+
+    draggedNote = null;
 
 });
