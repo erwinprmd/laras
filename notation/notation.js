@@ -19,6 +19,7 @@ let draggedNote = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 let suppressClickUntil = 0;
+let hasDragged = false;
 
 
 // =========================
