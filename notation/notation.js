@@ -15,6 +15,14 @@ const staff = document.querySelector(".staff");
 
 const notes = [];
 
+const measures = [
+    {
+        number: 1,
+        startX: 0,
+        endX: null
+    }
+];
+
 let selectedDuration = "quarter";
 
 let timeSignature = {
