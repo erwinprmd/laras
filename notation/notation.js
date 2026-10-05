@@ -220,6 +220,14 @@ staff.addEventListener("click", (event) => {
     getMeasureStatus(1)
 );
 
+    if (getMeasureStatus(1) === "OVERFULL") {
+
+    console.warn(
+        "Measure 1 is overfull."
+    );
+
+}
+    
     console.log("Note added:", {
     x,
     y,
