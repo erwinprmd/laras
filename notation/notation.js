@@ -1,11 +1,11 @@
 const pitchNames = [
-"C",
-"D",
-"E",
-"F",
-"G",
-"A",
-"B"
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "A",
+    "B"
 ];
 
 const lineSpacing = 22;
@@ -19,37 +19,10 @@ const notes = [];
 // MEASURES
 // =========================
 
-const measures = [
-{
-number: 1,
-startX: 100,
-endX: 1000
-},
-{
-number: 2,
-startX: 1000,
-endX: 1900
-}
+let measures = [
+    { number: 1, startX: 100, endX: 1000 },
+    { number: 2, startX: 1000, endX: 1900 }
 ];
-
-// =========================
-// BARLINE
-// =========================
-
-measures.forEach((measure, index) => {
-
-    if (index === 0) {
-        return;
-    }
-
-    const barline = document.createElement("div");
-
-    barline.classList.add("barline");
-
-    barline.style.left = `${measure.startX}px`;
-
-    staff.appendChild(barline);
-});
 
 // =========================
 // MUSIC SETTINGS
@@ -58,15 +31,15 @@ measures.forEach((measure, index) => {
 let selectedDuration = "quarter";
 
 const timeSignature = {
-beats: 4,
-beatUnit: 4
+    beats: 4,
+    beatUnit: 4
 };
 
 const durationBeats = {
-whole: 4,
-half: 2,
-quarter: 1,
-eighth: 0.5
+    whole: 4,
+    half: 2,
+    quarter: 1,
+    eighth: 0.5
 };
 
 // =========================
@@ -75,94 +48,149 @@ eighth: 0.5
 
 function getMeasureBeats(measureNumber) {
 
-
-return notes
-    .filter(note => note.measure === measureNumber)
-    .reduce((total, note) => {
-        return total + note.beats;
-    }, 0);
-
-
+    return notes
+        .filter(note => note.measure === measureNumber)
+        .reduce((total, note) => {
+            return total + note.beats;
+        }, 0);
 }
 
 function getMeasureStatus(measureNumber) {
 
+    const beats = getMeasureBeats(measureNumber);
+    const maxBeats = timeSignature.beats;
 
-const beats = getMeasureBeats(measureNumber);
-const maxBeats = timeSignature.beats;
+    if (beats === 0) {
+        return "EMPTY";
+    }
 
-if (beats === 0) {
-    return "EMPTY";
-}
+    if (beats < maxBeats) {
+        return "PARTIAL";
+    }
 
-if (beats < maxBeats) {
-    return "PARTIAL";
-}
+    if (beats === maxBeats) {
+        return "FULL";
+    }
 
-if (beats === maxBeats) {
-    return "FULL";
-}
-
-return "OVERFULL";
-
-
+    return "OVERFULL";
 }
 
 function getCurrentMeasure() {
 
+    for (const measure of measures) {
 
-for (const measure of measures) {
+        const status = getMeasureStatus(measure.number);
 
-    const status = getMeasureStatus(measure.number);
-
-    if (status !== "FULL" && status !== "OVERFULL") {
-        return measure;
+        if (status !== "FULL" && status !== "OVERFULL") {
+            return measure;
+        }
     }
 
+    return createNextMeasure();
 }
 
-return null;
+// =========================
+// CREATE NEXT MEASURE
+// =========================
 
+function createNextMeasure() {
 
+    const lastMeasure =
+        measures[measures.length - 1];
+
+    const measureWidth =
+        lastMeasure.endX -
+        lastMeasure.startX;
+
+    const newMeasure = {
+        number: lastMeasure.number + 1,
+        startX: lastMeasure.endX,
+        endX: lastMeasure.endX + measureWidth
+    };
+
+    measures.push(newMeasure);
+
+    console.log(
+        "New measure created:",
+        newMeasure
+    );
+
+    renderMeasures();
+
+    return newMeasure;
 }
+
+// =========================
+// RENDER MEASURES
+// =========================
+
+function renderMeasures() {
+
+    document
+        .querySelectorAll(".barline.dynamic")
+        .forEach(barline => {
+            barline.remove();
+        });
+
+    measures.forEach((measure, index) => {
+
+        if (index === 0) {
+            return;
+        }
+
+        const barline =
+            document.createElement("div");
+
+        barline.classList.add(
+            "barline",
+            "dynamic"
+        );
+
+        barline.style.left =
+            `${measure.startX}px`;
+
+        staff.appendChild(barline);
+    });
+}
+
+// Render initial measures
+renderMeasures();
 
 // =========================
 // INITIAL LOG
 // =========================
 
 console.log(
-"Current Measure:",
-getCurrentMeasure()
+    "Current Measure:",
+    getCurrentMeasure()
 );
 
 console.log(
-"Time Signature:",
-timeSignature
+    "Time Signature:",
+    timeSignature
 );
 
 // =========================
 // DURATION BUTTONS
 // =========================
 
-const durationButtons = document.querySelectorAll(
-"[data-duration]"
-);
+const durationButtons =
+    document.querySelectorAll(
+        "[data-duration]"
+    );
 
 durationButtons.forEach(button => {
 
+    button.addEventListener("click", () => {
 
-button.addEventListener("click", () => {
+        selectedDuration =
+            button.dataset.duration;
 
-    selectedDuration = button.dataset.duration;
-
-    console.log(
-        "Duration selected:",
-        selectedDuration
-    );
-
-});
-
-
+        console.log(
+            "Duration selected:",
+            selectedDuration
+        );
+    });
 });
 
 // =========================
@@ -189,74 +217,154 @@ staff.addEventListener("click", (event) => {
         return;
     }
 
-    const currentMeasure = getCurrentMeasure();
+    const currentMeasure =
+        getCurrentMeasure();
 
     if (!currentMeasure) {
-        console.warn("No available measure.");
+
+        console.warn(
+            "No available measure."
+        );
+
         return;
     }
 
-    const rect = staff.getBoundingClientRect();
+    const rect =
+        staff.getBoundingClientRect();
 
-    const rawX = event.clientX - rect.left;
-    const rawY = event.clientY - rect.top;
+    const rawX =
+        event.clientX - rect.left;
 
-    // Batasi posisi note agar tetap berada di measure aktif
-    const minX = currentMeasure.startX + 50;
-    const maxX = currentMeasure.endX - 50;
+    const rawY =
+        event.clientY - rect.top;
 
-    const x = Math.max(minX, Math.min(rawX, maxX));
+    // =========================
+    // POSITION X
+    // =========================
 
-    const staffStep = lineSpacing / 2;
+    const minX =
+        currentMeasure.startX + 50;
 
-    const y = Math.round(rawY / staffStep) * staffStep;
+    const maxX =
+        currentMeasure.endX - 50;
 
-    const pitchIndex =
-        Math.round((88 - y) / staffStep) % pitchNames.length;
+    const x =
+        Math.max(
+            minX,
+            Math.min(rawX, maxX)
+        );
+
+    // =========================
+    // POSITION Y
+    // =========================
+
+    const y =
+        Math.round(
+            rawY / staffStep
+        ) * staffStep;
+
+    // =========================
+    // PITCH
+    // =========================
+
+    const topLineY = lineSpacing;
+
+    const step =
+        Math.round(
+            (y - topLineY) / staffStep
+        );
 
     const pitch =
-        pitchNames[(pitchIndex + pitchNames.length) % pitchNames.length];
+        pitchNames[
+            ((3 - step) % 7 + 7) % 7
+        ];
 
-    const note = document.createElement("div");
+    // =========================
+    // CREATE NOTE
+    // =========================
 
-    note.classList.add("note", selectedDuration);
+    const note =
+        document.createElement("span");
 
-    note.style.left = `${x}px`;
-    note.style.top = `${y}px`;
+    note.className =
+        `note ${selectedDuration}`;
 
-    const stem = document.createElement("div");
-    stem.classList.add("stem");
+    note.dataset.pitch =
+        pitch;
 
-    note.appendChild(stem);
+    // =========================
+    // STEM
+    // =========================
 
-    if (selectedDuration === "eighth") {
-        const flag = document.createElement("div");
-        flag.classList.add("flag");
-        note.appendChild(flag);
+    if (selectedDuration !== "whole") {
+
+        const stem =
+            document.createElement("span");
+
+        stem.className =
+            "stem";
+
+        note.appendChild(stem);
+
+        if (selectedDuration === "eighth") {
+
+            const flag =
+                document.createElement("span");
+
+            flag.className =
+                "flag";
+
+            stem.appendChild(flag);
+        }
     }
+
+    // =========================
+    // PLACE NOTE
+    // =========================
+
+    note.style.left =
+        `${x}px`;
+
+    note.style.top =
+        `${y}px`;
 
     staff.appendChild(note);
 
+    // =========================
+    // SAVE NOTE DATA
+    // =========================
+
     notes.push({
-        x,
-        y,
-        pitch,
+        x: x,
+        y: y,
+        pitch: pitch,
         duration: selectedDuration,
         beats: durationBeats[selectedDuration],
         measure: currentMeasure.number,
         element: note
     });
 
-    console.log("Note added:", notes[notes.length - 1]);
+    // =========================
+    // DEBUG
+    // =========================
+
+    console.log(
+        "Note added:",
+        notes[notes.length - 1]
+    );
 
     console.log(
         `Measure ${currentMeasure.number} beats:`,
-        getMeasureBeats(currentMeasure.number)
+        getMeasureBeats(
+            currentMeasure.number
+        )
     );
 
     console.log(
         `Measure ${currentMeasure.number} status:`,
-        getMeasureStatus(currentMeasure.number)
+        getMeasureStatus(
+            currentMeasure.number
+        )
     );
 
     console.log(
@@ -265,286 +373,164 @@ staff.addEventListener("click", (event) => {
     );
 });
 
-
-// =========================
-// GET CURRENT MEASURE
-// =========================
-
-const currentMeasure = getCurrentMeasure();
-
-if (!currentMeasure) {
-
-    console.warn(
-        "No available measure."
-    );
-
-    return;
-}
-
-
-// =========================
-// POSITION
-// =========================
-
-const rect = staff.getBoundingClientRect();
-
-const x = event.clientX - rect.left;
-const rawY = event.clientY - rect.top;
-
-const y =
-    Math.round(rawY / staffStep) * staffStep;
-
-
-// =========================
-// PITCH
-// =========================
-
-const topLineY = lineSpacing;
-
-const step =
-    Math.round(
-        (y - topLineY) / staffStep
-    );
-
-const pitch =
-    pitchNames[
-        ((3 - step) % 7 + 7) % 7
-    ];
-
-
-// =========================
-// CREATE NOTE
-// =========================
-
-const note = document.createElement("span");
-
-note.className =
-    `note ${selectedDuration}`;
-
-note.dataset.pitch = pitch;
-
-
-// =========================
-// STEM
-// =========================
-
-if (selectedDuration !== "whole") {
-
-    const stem = document.createElement("span");
-
-    stem.className = "stem";
-
-    note.appendChild(stem);
-
-
-    if (selectedDuration === "eighth") {
-
-        const flag = document.createElement("span");
-
-        flag.className = "flag";
-
-        stem.appendChild(flag);
-
-    }
-
-}
-
-
-// =========================
-// PLACE NOTE
-// =========================
-
-note.style.left = `${x}px`;
-note.style.top = `${y}px`;
-
-staff.appendChild(note);
-
-
-// =========================
-// SAVE NOTE DATA
-// =========================
-
-notes.push({
-    x: x,
-    y: y,
-    pitch: pitch,
-    duration: selectedDuration,
-    beats: durationBeats[selectedDuration],
-    measure: currentMeasure.number,
-    element: note
-});
-
-
-// =========================
-// DEBUG
-// =========================
-
-console.log("Note added:", {
-    x: x,
-    y: y,
-    pitch: pitch,
-    duration: selectedDuration,
-    beats: durationBeats[selectedDuration],
-    measure: currentMeasure.number
-});
-
-console.log(
-    `Measure ${currentMeasure.number} beats:`,
-    getMeasureBeats(currentMeasure.number)
-);
-
-console.log(
-    `Measure ${currentMeasure.number} status:`,
-    getMeasureStatus(currentMeasure.number)
-);
-
-console.log(
-    "Current Measure:",
-    getCurrentMeasure()
-);
-
-
-});
-
 // =========================
 // START DRAG
 // =========================
 
-staff.addEventListener("pointerdown", (event) => {
+staff.addEventListener(
+    "pointerdown",
+    (event) => {
 
+        const noteElement =
+            event.target.closest(".note");
 
-const noteElement = event.target.closest(".note");
+        if (!noteElement) {
+            return;
+        }
 
-if (!noteElement) {
-    return;
-}
+        draggedNote =
+            noteElement;
 
-draggedNote = noteElement;
-hasDragged = false;
+        hasDragged = false;
 
-const rect = noteElement.getBoundingClientRect();
+        const rect =
+            noteElement.getBoundingClientRect();
 
-dragOffsetX =
-    event.clientX - rect.left;
+        dragOffsetX =
+            event.clientX - rect.left;
 
-dragOffsetY =
-    event.clientY - rect.top;
+        dragOffsetY =
+            event.clientY - rect.top;
 
-draggedNote.setPointerCapture(event.pointerId);
-
-
-});
+        draggedNote.setPointerCapture(
+            event.pointerId
+        );
+    }
+);
 
 // =========================
 // DRAG NOTE
 // =========================
 
-staff.addEventListener("pointermove", (event) => {
+staff.addEventListener(
+    "pointermove",
+    (event) => {
 
+        if (!draggedNote) {
+            return;
+        }
 
-if (!draggedNote) {
-    return;
-}
+        hasDragged = true;
 
-hasDragged = true;
+        const staffRect =
+            staff.getBoundingClientRect();
 
-const staffRect = staff.getBoundingClientRect();
+        const x =
+            event.clientX -
+            staffRect.left -
+            dragOffsetX;
 
-const x =
-    event.clientX -
-    staffRect.left -
-    dragOffsetX;
+        const rawY =
+            event.clientY -
+            staffRect.top -
+            dragOffsetY;
 
-const rawY =
-    event.clientY -
-    staffRect.top -
-    dragOffsetY;
+        const y =
+            Math.round(
+                rawY / staffStep
+            ) * staffStep;
 
-const y =
-    Math.round(rawY / staffStep) *
-    staffStep;
+        draggedNote.style.left =
+            `${x}px`;
 
-draggedNote.style.left = `${x}px`;
-draggedNote.style.top = `${y}px`;
-
-
-});
+        draggedNote.style.top =
+            `${y}px`;
+    }
+);
 
 // =========================
 // END DRAG
 // =========================
 
-staff.addEventListener("pointerup", (event) => {
+staff.addEventListener(
+    "pointerup",
+    (event) => {
 
+        if (!draggedNote) {
+            return;
+        }
 
-if (!draggedNote) {
-    return;
-}
+        const noteElement =
+            draggedNote;
 
-const noteElement = draggedNote;
+        const x =
+            parseFloat(
+                noteElement.style.left
+            );
 
-const x =
-    parseFloat(noteElement.style.left);
+        const y =
+            parseFloat(
+                noteElement.style.top
+            );
 
-const y =
-    parseFloat(noteElement.style.top);
+        // =========================
+        // RECALCULATE PITCH
+        // =========================
 
+        const topLineY =
+            lineSpacing;
 
-// =========================
-// RECALCULATE PITCH
-// =========================
+        const step =
+            Math.round(
+                (y - topLineY) / staffStep
+            );
 
-const topLineY = lineSpacing;
+        const pitch =
+            pitchNames[
+                ((3 - step) % 7 + 7) % 7
+            ];
 
-const step =
-    Math.round(
-        (y - topLineY) / staffStep
-    );
+        // =========================
+        // UPDATE NOTE DATA
+        // =========================
 
-const pitch =
-    pitchNames[
-        ((3 - step) % 7 + 7) % 7
-    ];
+        const noteData =
+            notes.find(
+                note =>
+                    note.element ===
+                    noteElement
+            );
 
+        if (noteData) {
 
-// =========================
-// UPDATE NOTE DATA
-// =========================
+            noteData.x = x;
+            noteData.y = y;
+            noteData.pitch = pitch;
+        }
 
-const noteData = notes.find(
-    note => note.element === noteElement
+        noteElement.dataset.pitch =
+            pitch;
+
+        // =========================
+        // DRAG FINISHED
+        // =========================
+
+        if (hasDragged) {
+
+            console.log(
+                "Note moved:",
+                {
+                    x: x,
+                    y: y,
+                    pitch: pitch
+                }
+            );
+
+            suppressClickUntil =
+                Date.now() + 300;
+        }
+
+        draggedNote = null;
+        hasDragged = false;
+    }
 );
-
-if (noteData) {
-
-    noteData.x = x;
-    noteData.y = y;
-    noteData.pitch = pitch;
-
-}
-
-noteElement.dataset.pitch = pitch;
-
-
-// =========================
-// DRAG FINISHED
-// =========================
-
-if (hasDragged) {
-
-    console.log("Note moved:", {
-        x: x,
-        y: y,
-        pitch: pitch
-    });
-
-    suppressClickUntil =
-        Date.now() + 300;
-
-}
-
-draggedNote = null;
-hasDragged = false;
-
-
-});
