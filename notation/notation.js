@@ -151,6 +151,20 @@ function renderMeasures() {
 
         staff.appendChild(barline);
     });
+
+    updateStaffWidth();
+}
+
+function updateStaffWidth() {
+
+    const lastMeasure =
+        measures[measures.length - 1];
+
+    const width =
+        lastMeasure.endX + 100;
+
+    staff.style.width =
+        `${width}px`;
 }
 
 // Render initial measures
