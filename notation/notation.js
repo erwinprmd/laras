@@ -529,6 +529,9 @@ staff.addEventListener("dblclick", (event) => {
     // Hapus dari staff
     noteElement.remove();
 
+    // Rapikan kembali posisi note
+reflowNotes();
+
     console.log(
         "Note deleted:",
         noteData
