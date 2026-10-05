@@ -65,6 +65,27 @@ function getMeasureBeats(measureNumber) {
 
 }
 
+function getMeasureStatus(measureNumber) {
+
+    const beats = getMeasureBeats(measureNumber);
+    const maxBeats = timeSignature.beats;
+
+    if (beats === 0) {
+        return "EMPTY";
+    }
+
+    if (beats < maxBeats) {
+        return "PARTIAL";
+    }
+
+    if (beats === maxBeats) {
+        return "FULL";
+    }
+
+    return "OVERFULL";
+
+}
+
 console.log("Time Signature:", {
     beats: timeSignature.beats,
     beatUnit: timeSignature.beatUnit,
@@ -192,6 +213,11 @@ staff.addEventListener("click", (event) => {
     console.log(
     "Measure 1 beats:",
     getMeasureBeats(1)
+);
+
+    console.log(
+    "Measure 1 status:",
+    getMeasureStatus(1)
 );
 
     console.log("Note added:", {
