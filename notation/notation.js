@@ -261,6 +261,23 @@ staff.addEventListener("click", (event) => {
     const currentMeasure =
         getCurrentMeasure();
 
+    const usedBeats =
+    getMeasureBeats(currentMeasure.number);
+
+const noteBeats =
+    durationBeats[selectedDuration];
+
+if (usedBeats + noteBeats > timeSignature.beats) {
+
+    console.warn(
+        `Note tidak bisa ditambahkan. ` +
+        `Measure ${currentMeasure.number} hanya memiliki ` +
+        `${timeSignature.beats - usedBeats} beat tersisa.`
+    );
+
+    return;
+}
+
     if (!currentMeasure) {
 
         console.warn(
@@ -369,23 +386,29 @@ staff.addEventListener("click", (event) => {
     // =========================
 
     notes.push({
-        x: x,
-        y: y,
-        pitch: pitch,
-        duration: selectedDuration,
-        beats: durationBeats[selectedDuration],
-        measure: currentMeasure.number,
-        element: note
-    });
+    x: x,
+    y: y,
+    pitch: pitch,
+    duration: selectedDuration,
+    beats: durationBeats[selectedDuration],
+    beatPosition: getMeasureBeats(currentMeasure.number),
+    measure: currentMeasure.number,
+    element: note
+});
 
     // =========================
     // DEBUG
     // =========================
 
-    console.log(
-        "Note added:",
-        notes[notes.length - 1]
-    );
+    const addedNote =
+    notes[notes.length - 1];
+
+console.log(
+    `Note added: ${addedNote.pitch} | ` +
+    `Measure ${addedNote.measure} | ` +
+    `Beat ${addedNote.beatPosition} | ` +
+    `${addedNote.duration}`
+);
 
     console.log(
         `Measure ${currentMeasure.number} beats:`,
