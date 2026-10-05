@@ -283,18 +283,11 @@ staff.addEventListener("click", (event) => {
     // POSITION X
     // =========================
 
-    const minX =
-        currentMeasure.startX + 50;
-
-    const maxX =
-        currentMeasure.endX - 50;
-
     const x =
-        Math.max(
-            minX,
-            Math.min(rawX, maxX)
-        );
-
+    getNextBeatPosition(
+        currentMeasure.number
+    );
+    
     // =========================
     // POSITION Y
     // =========================
@@ -413,6 +406,33 @@ staff.addEventListener("click", (event) => {
         getCurrentMeasure()
     );
 });
+
+function getNextBeatPosition(measureNumber) {
+    const measure = measures.find(
+        measure => measure.number === measureNumber
+    );
+
+    if (!measure) {
+        return null;
+    }
+
+    const usedBeats = getMeasureBeats(measureNumber);
+
+    const beat = usedBeats;
+
+    const usableWidth =
+        (measure.endX - measure.startX) - 100;
+
+    const beatWidth =
+        usableWidth / timeSignature.beats;
+
+    const x =
+        measure.startX +
+        50 +
+        (beat * beatWidth);
+
+    return x;
+}
 
 // =========================
 // START DRAG
