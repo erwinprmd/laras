@@ -418,8 +418,6 @@ function getNextBeatPosition(measureNumber) {
 
     const usedBeats = getMeasureBeats(measureNumber);
 
-    const beat = usedBeats;
-
     const usableWidth =
         (measure.endX - measure.startX) - 100;
 
@@ -429,7 +427,7 @@ function getNextBeatPosition(measureNumber) {
     const x =
         measure.startX +
         50 +
-        (beat * beatWidth);
+        (usedBeats * beatWidth);
 
     return x;
 }
