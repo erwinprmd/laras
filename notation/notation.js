@@ -167,7 +167,34 @@ function updateStaffWidth() {
         `${width}px`;
 }
 
+// =========================
+// RENDER STAFF LINES
+// =========================
+
+function renderStaffLines() {
+
+    document
+        .querySelectorAll(".staff-line")
+        .forEach(line => {
+            line.remove();
+        });
+
+    for (let i = 0; i < 5; i++) {
+
+        const line =
+            document.createElement("div");
+
+        line.classList.add("staff-line");
+
+        line.style.top =
+            `${lineSpacing + (i * lineSpacing)}px`;
+
+        staff.appendChild(line);
+    }
+}
+
 // Render initial measures
+renderStaffLines();
 renderMeasures();
 
 // =========================
