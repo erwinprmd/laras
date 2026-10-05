@@ -36,9 +36,20 @@ endX: 1900
 // BARLINE
 // =========================
 
-const barline = document.querySelector(".barline");
+measures.forEach((measure, index) => {
 
-barline.style.left = `${measures[0].endX}px`;
+    if (index === 0) {
+        return;
+    }
+
+    const barline = document.createElement("div");
+
+    barline.classList.add("barline");
+
+    barline.style.left = `${measure.startX}px`;
+
+    staff.appendChild(barline);
+});
 
 // =========================
 // MUSIC SETTINGS
@@ -170,40 +181,89 @@ let suppressClickUntil = 0;
 
 staff.addEventListener("click", (event) => {
 
-
-// Abaikan click setelah drag
-if (Date.now() < suppressClickUntil) {
-    return;
-}
-
-
-// =========================
-// REMOVE NOTE
-// =========================
-
-const clickedNote = event.target.closest(".note");
-
-if (clickedNote) {
-
-    const index = notes.findIndex(
-        note => note.element === clickedNote
-    );
-
-    if (index !== -1) {
-        notes.splice(index, 1);
+    if (Date.now() < suppressClickUntil) {
+        return;
     }
 
-    clickedNote.remove();
+    if (event.target !== staff) {
+        return;
+    }
 
-    console.log("Note removed");
+    const currentMeasure = getCurrentMeasure();
+
+    if (!currentMeasure) {
+        console.warn("No available measure.");
+        return;
+    }
+
+    const rect = staff.getBoundingClientRect();
+
+    const rawX = event.clientX - rect.left;
+    const rawY = event.clientY - rect.top;
+
+    // Batasi posisi note agar tetap berada di measure aktif
+    const minX = currentMeasure.startX + 50;
+    const maxX = currentMeasure.endX - 50;
+
+    const x = Math.max(minX, Math.min(rawX, maxX));
+
+    const staffStep = lineSpacing / 2;
+
+    const y = Math.round(rawY / staffStep) * staffStep;
+
+    const pitchIndex =
+        Math.round((88 - y) / staffStep) % pitchNames.length;
+
+    const pitch =
+        pitchNames[(pitchIndex + pitchNames.length) % pitchNames.length];
+
+    const note = document.createElement("div");
+
+    note.classList.add("note", selectedDuration);
+
+    note.style.left = `${x}px`;
+    note.style.top = `${y}px`;
+
+    const stem = document.createElement("div");
+    stem.classList.add("stem");
+
+    note.appendChild(stem);
+
+    if (selectedDuration === "eighth") {
+        const flag = document.createElement("div");
+        flag.classList.add("flag");
+        note.appendChild(flag);
+    }
+
+    staff.appendChild(note);
+
+    notes.push({
+        x,
+        y,
+        pitch,
+        duration: selectedDuration,
+        beats: durationBeats[selectedDuration],
+        measure: currentMeasure.number,
+        element: note
+    });
+
+    console.log("Note added:", notes[notes.length - 1]);
+
+    console.log(
+        `Measure ${currentMeasure.number} beats:`,
+        getMeasureBeats(currentMeasure.number)
+    );
+
+    console.log(
+        `Measure ${currentMeasure.number} status:`,
+        getMeasureStatus(currentMeasure.number)
+    );
 
     console.log(
         "Current Measure:",
         getCurrentMeasure()
     );
-
-    return;
-}
+});
 
 
 // =========================
