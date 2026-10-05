@@ -240,6 +240,10 @@ staff.addEventListener("click", (event) => {
     "Measure 1 status:",
     getMeasureStatus(1)
 );
+    console.log(
+    "Current Measure:",
+    getCurrentMeasure()
+);
 
     if (getMeasureStatus(1) === "OVERFULL") {
 
