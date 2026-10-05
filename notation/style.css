@@ -130,16 +130,14 @@ body {
 
 .notation-signature {
     position: absolute;
-
     left: 50px;
-    top: 50%;
+    top: 136px;
 
     display: flex;
     align-items: center;
     gap: 14px;
 
     transform: translateY(-50%);
-
     z-index: 2;
 }
 
@@ -221,30 +219,25 @@ body {
 
 .staff-line {
     position: absolute;
-
-    left: 0;
-
-    width: 100%;
+    left: 100px;
+    width: calc(100% - 100px);
 
     height: 1px;
-
     margin: 0;
 
     background: var(--text);
+    z-index: 0;
 }
 
 .barline {
     position: absolute;
-
     top: 22px;
-    bottom: 22px;
+    height: 88px;
 
     width: 1px;
-
     margin: 0 !important;
 
     background: var(--text);
-
     z-index: 1;
 }
 
