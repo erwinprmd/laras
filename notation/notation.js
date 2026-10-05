@@ -435,6 +435,54 @@ function getNextBeatPosition(measureNumber) {
 }
 
 // =========================
+// DELETE NOTE
+// =========================
+
+staff.addEventListener("dblclick", (event) => {
+
+    const noteElement =
+        event.target.closest(".note");
+
+    if (!noteElement) {
+        return;
+    }
+
+    // Cari data note
+    const noteIndex =
+        notes.findIndex(
+            note => note.element === noteElement
+        );
+
+    if (noteIndex === -1) {
+        return;
+    }
+
+    const noteData =
+        notes[noteIndex];
+
+    // Hapus dari array
+    notes.splice(noteIndex, 1);
+
+    // Hapus dari staff
+    noteElement.remove();
+
+    console.log(
+        "Note deleted:",
+        noteData
+    );
+
+    console.log(
+        `Measure ${noteData.measure} beats:`,
+        getMeasureBeats(noteData.measure)
+    );
+
+    console.log(
+        `Measure ${noteData.measure} status:`,
+        getMeasureStatus(noteData.measure)
+    );
+});
+
+// =========================
 // START DRAG
 // =========================
 
