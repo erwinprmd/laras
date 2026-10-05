@@ -102,6 +102,11 @@ function getCurrentMeasure() {
 
 }
 
+console.log(
+    "Current Measure:",
+    getCurrentMeasure()
+);
+
 console.log("Time Signature:", {
     beats: timeSignature.beats,
     beatUnit: timeSignature.beatUnit,
