@@ -64,19 +64,19 @@ eighth: 0.5
 
 function getMeasureBeats(measureNumber) {
 
-```
+
 return notes
     .filter(note => note.measure === measureNumber)
     .reduce((total, note) => {
         return total + note.beats;
     }, 0);
-```
+
 
 }
 
 function getMeasureStatus(measureNumber) {
 
-```
+
 const beats = getMeasureBeats(measureNumber);
 const maxBeats = timeSignature.beats;
 
@@ -93,13 +93,13 @@ if (beats === maxBeats) {
 }
 
 return "OVERFULL";
-```
+
 
 }
 
 function getCurrentMeasure() {
 
-```
+
 for (const measure of measures) {
 
     const status = getMeasureStatus(measure.number);
@@ -111,7 +111,7 @@ for (const measure of measures) {
 }
 
 return null;
-```
+
 
 }
 
@@ -139,7 +139,7 @@ const durationButtons = document.querySelectorAll(
 
 durationButtons.forEach(button => {
 
-```
+
 button.addEventListener("click", () => {
 
     selectedDuration = button.dataset.duration;
@@ -150,7 +150,7 @@ button.addEventListener("click", () => {
     );
 
 });
-```
+
 
 });
 
@@ -170,7 +170,7 @@ let suppressClickUntil = 0;
 
 staff.addEventListener("click", (event) => {
 
-```
+
 // Abaikan click setelah drag
 if (Date.now() < suppressClickUntil) {
     return;
@@ -342,7 +342,7 @@ console.log(
     "Current Measure:",
     getCurrentMeasure()
 );
-```
+
 
 });
 
@@ -352,7 +352,7 @@ console.log(
 
 staff.addEventListener("pointerdown", (event) => {
 
-```
+
 const noteElement = event.target.closest(".note");
 
 if (!noteElement) {
@@ -371,7 +371,7 @@ dragOffsetY =
     event.clientY - rect.top;
 
 draggedNote.setPointerCapture(event.pointerId);
-```
+
 
 });
 
@@ -381,7 +381,7 @@ draggedNote.setPointerCapture(event.pointerId);
 
 staff.addEventListener("pointermove", (event) => {
 
-```
+
 if (!draggedNote) {
     return;
 }
@@ -406,7 +406,7 @@ const y =
 
 draggedNote.style.left = `${x}px`;
 draggedNote.style.top = `${y}px`;
-```
+
 
 });
 
@@ -416,7 +416,7 @@ draggedNote.style.top = `${y}px`;
 
 staff.addEventListener("pointerup", (event) => {
 
-```
+
 if (!draggedNote) {
     return;
 }
@@ -485,6 +485,6 @@ if (hasDragged) {
 
 draggedNote = null;
 hasDragged = false;
-```
+
 
 });
