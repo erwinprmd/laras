@@ -20,6 +20,11 @@ const measures = [
         number: 1,
         startX: 100,
         endX: 1000
+    },
+    {
+        number: 2,
+        startX: 1000,
+        endX: 1900
     }
 ];
 
@@ -169,6 +174,13 @@ staff.addEventListener("click", (event) => {
         return;
     }
 
+    const currentMeasure = getCurrentMeasure();
+
+if (!currentMeasure) {
+    console.warn("No available measure.");
+    return;
+}
+
     const rect = staff.getBoundingClientRect();
 
     const x = event.clientX - rect.left;
@@ -221,13 +233,20 @@ staff.addEventListener("click", (event) => {
 
     staff.appendChild(note);
 
-    notes.push({
+    const currentMeasure = getCurrentMeasure();
+
+if (!currentMeasure) {
+    console.warn("No available measure.");
+    return;
+}
+
+notes.push({
     x,
     y,
     pitch,
     duration: selectedDuration,
     beats: durationBeats[selectedDuration],
-    measure: 1,
+    measure: currentMeasure.number,
     element: note
 });
 
