@@ -86,6 +86,22 @@ function getMeasureStatus(measureNumber) {
 
 }
 
+function getCurrentMeasure() {
+
+    for (const measure of measures) {
+
+        const status = getMeasureStatus(measure.number);
+
+        if (status !== "FULL" && status !== "OVERFULL") {
+            return measure;
+        }
+
+    }
+
+    return null;
+
+}
+
 console.log("Time Signature:", {
     beats: timeSignature.beats,
     beatUnit: timeSignature.beatUnit,
