@@ -3,29 +3,26 @@
    LARAS — DARK MUSIC STUDIO
 ======================================== */
 
+
 :root {
-    color-scheme: dark;
+    --bg: #08090b;
+    --surface: #121316;
+    --surface-raised: #19191e;
+    --surface-hover: #242126;
 
-    --bg: #090b14;
-    --surface: #111525;
-    --surface-raised: #171c30;
-    --surface-hover: #202641;
+    --text: #e8e5e5;
+    --muted: #aaa1a3;
 
-    --text: #f4f5fc;
-    --muted: #9aa2bd;
-    --border: rgba(173, 164, 255, 0.17);
+    --border: rgba(185, 106, 118, 0.20);
+    --accent: #873e4a;
+    --accent-hover: #b96a76;
+    --accent-soft: rgba(135, 62, 74, 0.16);
+    --accent-border: rgba(185, 106, 118, 0.45);
 
-    --accent: #8b5cf6;
-    --accent-hover: #a78bfa;
-    --accent-soft: rgba(139, 92, 246, 0.14);
-    --accent-border: rgba(167, 139, 250, 0.4);
-
-    --staff-line: #c6cbe0;
-    --note-color: #c4b5fd;
-
-    --radius: 12px;
-    --shadow: 0 18px 55px rgba(0, 0, 0, 0.2);
+    --staff-line: #81777c;
+    --note-color: #e8b7be;
 }
+
 
 * {
     box-sizing: border-box;
