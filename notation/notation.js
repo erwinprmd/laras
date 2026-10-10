@@ -1,4 +1,12 @@
 
+"use strict";
+
+// ========================================
+// LARAS — MUSIC NOTATION ENGINE
+// ========================================
+
+// ---------- CONSTANTS ----------
+
 const pitchNames = ["C", "D", "E", "F", "G", "A", "B"];
 
 const lineSpacing = 22;
@@ -8,24 +16,6 @@ const staff = document.querySelector(".staff");
 if (!staff) {
     throw new Error('Elemen ".staff" tidak ditemukan.');
 }
-
-// =========================
-// MUSIC DATA
-// =========================
-
-const notes = [];
-
-let measures = [
-    { number: 1, startX: 100, endX: 1000 },
-    { number: 2, startX: 1000, endX: 1900 }
-];
-
-let selectedDuration = "quarter";
-
-const timeSignature = {
-    beats: 4,
-    beatUnit: 4
-};
 
 const durationBeats = {
     whole: 4,
@@ -41,40 +31,72 @@ const restSymbols = {
     eighth: "𝄾"
 };
 
+const PROJECT_STORAGE_KEY = "laras_saved_compositions_v1";
+
+const supportedTimeSignatures = [
+    { beats: 2, beatUnit: 4 },
+    { beats: 3, beatUnit: 4 },
+    { beats: 4, beatUnit: 4 }
+];
+
+// ---------- EDITOR STATE ----------
+
+const notes = [];
+
+let measures = [
+    { number: 1, startX: 100, endX: 1000 },
+    { number: 2, startX: 1000, endX: 1900 }
+];
+
+let selectedDuration = "quarter";
+let currentClef = "treble";
+let currentProjectName = "Untitled composition";
+
+const timeSignature = {
+    beats: 4,
+    beatUnit: 4
+};
+
 let draggedNote = null;
-let dragOffsetX = 0;
-let dragOffsetY = 0;
-let dragStartX = 0;
 let dragStartY = 0;
 let hasDragged = false;
 let suppressClickUntil = 0;
 
-// =========================
-// MEASURE CALCULATIONS
-// =========================
+// ---------- HTML ELEMENTS ----------
 
-function getMeasureBeats(measureNumber, excludedNote = null) {
+const clefControl = document.getElementById("trebleClef");
+const signatureControl = document.getElementById("timeSignature");
+
+const projectStatus = document.getElementById("projectStatus");
+const newProjectButton = document.getElementById("newProject");
+const saveProjectButton = document.getElementById("saveProject");
+const openProjectButton = document.getElementById("openProject");
+const exportProjectButton = document.getElementById("exportProject");
+const importProjectButton = document.getElementById("importProject");
+const importProjectFile = document.getElementById("importProjectFile");
+
+// ========================================
+// MEASURE ENGINE
+// ========================================
+
+function getMeasure(number) {
+    return measures.find(measure => measure.number === number);
+}
+
+function getMeasureBeats(measureNumber) {
     return notes
-        .filter(note =>
-            note.measure === measureNumber &&
-            note !== excludedNote
-        )
+        .filter(note => note.measure === measureNumber)
         .reduce((total, note) => total + note.beats, 0);
 }
 
 function getMeasureStatus(measureNumber) {
     const beats = getMeasureBeats(measureNumber);
-    const maxBeats = timeSignature.beats;
 
     if (beats === 0) return "EMPTY";
-    if (beats < maxBeats) return "PARTIAL";
-    if (beats === maxBeats) return "FULL";
+    if (beats < timeSignature.beats) return "PARTIAL";
+    if (beats === timeSignature.beats) return "FULL";
 
     return "OVERFULL";
-}
-
-function getMeasure(number) {
-    return measures.find(measure => measure.number === number);
 }
 
 function getCurrentMeasure() {
@@ -89,13 +111,8 @@ function getCurrentMeasure() {
     return createNextMeasure();
 }
 
-// =========================
-// MEASURE CREATION
-// =========================
-
 function createNextMeasure() {
     const lastMeasure = measures[measures.length - 1];
-
     const measureWidth = lastMeasure.endX - lastMeasure.startX;
 
     const newMeasure = {
@@ -105,7 +122,6 @@ function createNextMeasure() {
     };
 
     measures.push(newMeasure);
-
     renderMeasures();
 
     console.log("New measure created:", newMeasure);
@@ -113,18 +129,20 @@ function createNextMeasure() {
     return newMeasure;
 }
 
-// =========================
+// ========================================
 // STAFF RENDERING
-// =========================
+// ========================================
 
 function updateStaffWidth() {
     const lastMeasure = measures[measures.length - 1];
+
+    if (!lastMeasure) return;
 
     staff.style.width = `${lastMeasure.endX + 100}px`;
 }
 
 function renderMeasures() {
-    staff.querySelectorAll(".barline.dynamic").forEach(line => line.remove());
+    staff.querySelectorAll(".barline").forEach(line => line.remove());
 
     measures.forEach((measure, index) => {
         if (index === 0) return;
@@ -155,13 +173,138 @@ function renderStaffLines() {
     }
 }
 
-// =========================
-// BEAT POSITIONING
-// =========================
+// ========================================
+// CLEF & PITCH
+// ========================================
+
+function getPitchFromY(y) {
+    const step = Math.round((y - lineSpacing) / staffStep);
+
+    // Letter-name mapping only; octave is not stored yet.
+    const topLineIndex = currentClef === "bass" ? 5 : 3;
+
+    return pitchNames[
+        ((topLineIndex - step) % 7 + 7) % 7
+    ];
+}
+
+function getSnappedY(y) {
+    return Math.round(y / staffStep) * staffStep;
+}
+
+function renderClef() {
+    const clefElement = document.querySelector(".clef");
+
+    if (clefElement) {
+        clefElement.textContent =
+            currentClef === "bass" ? "𝄢" : "𝄞";
+    }
+
+    if (clefControl) {
+        clefControl.textContent =
+            currentClef === "bass" ? "Bass Clef" : "Treble Clef";
+    }
+}
+
+function refreshNotePitches() {
+    notes.forEach(note => {
+        if (note.isRest) return;
+
+        note.pitch = getPitchFromY(note.y);
+
+        if (note.element) {
+            note.element.dataset.pitch = note.pitch;
+        }
+    });
+}
+
+// ========================================
+// TIME SIGNATURE
+// ========================================
+
+function renderTimeSignature() {
+    const signature = document.querySelector(".time-signature");
+
+    if (signature) {
+        signature.replaceChildren();
+
+        const numerator = document.createElement("span");
+        const denominator = document.createElement("span");
+
+        numerator.textContent = String(timeSignature.beats);
+        denominator.textContent = String(timeSignature.beatUnit);
+
+        signature.append(numerator, denominator);
+    }
+
+    if (signatureControl) {
+        signatureControl.textContent =
+            `${timeSignature.beats}/${timeSignature.beatUnit}`;
+    }
+}
+
+function changeTimeSignature() {
+    const currentIndex = supportedTimeSignatures.findIndex(
+        signature =>
+            signature.beats === timeSignature.beats &&
+            signature.beatUnit === timeSignature.beatUnit
+    );
+
+    const nextSignature =
+        supportedTimeSignatures[
+            (currentIndex + 1) % supportedTimeSignatures.length
+        ];
+
+    // Do not allow a meter change that makes existing notes
+    // exceed the capacity of their measure.
+    const hasOverflow = measures.some(measure =>
+        notes
+            .filter(note => note.measure === measure.number)
+            .some(note =>
+                note.beatPosition + note.beats > nextSignature.beats
+            )
+    );
+
+    if (hasOverflow) {
+        alert(
+            `Birama ${nextSignature.beats}/4 tidak dapat digunakan. ` +
+            "Ada not yang melebihi kapasitas birama tersebut."
+        );
+
+        return;
+    }
+
+    timeSignature.beats = nextSignature.beats;
+    timeSignature.beatUnit = nextSignature.beatUnit;
+
+    renderTimeSignature();
+    reflowNotes();
+
+    console.log("Time signature changed:", { ...timeSignature });
+}
+
+if (clefControl) {
+    clefControl.addEventListener("click", () => {
+        currentClef = currentClef === "treble" ? "bass" : "treble";
+
+        renderClef();
+        refreshNotePitches();
+
+        console.log("Clef changed:", currentClef);
+    });
+}
+
+if (signatureControl) {
+    signatureControl.addEventListener("click", changeTimeSignature);
+}
+
+// ========================================
+// NOTE POSITIONING
+// ========================================
 
 function getBeatWidth(measure) {
     const usableWidth =
-        (measure.endX - measure.startX) - 100;
+        measure.endX - measure.startX - 100;
 
     return usableWidth / timeSignature.beats;
 }
@@ -171,10 +314,8 @@ function getNextBeatPosition(measureNumber) {
 
     if (!measure) return null;
 
-    const usedBeats = getMeasureBeats(measureNumber);
-    const beatWidth = getBeatWidth(measure);
-
-    return measure.startX + 50 + usedBeats * beatWidth;
+    return measure.startX + 50 +
+        getMeasureBeats(measureNumber) * getBeatWidth(measure);
 }
 
 function getNoteX(measureNumber, beatPosition) {
@@ -186,25 +327,20 @@ function getNoteX(measureNumber, beatPosition) {
         beatPosition * getBeatWidth(measure);
 }
 
-// =========================
-// PITCH CALCULATION
-// =========================
+function reflowNotes() {
+    notes.forEach(note => {
+        note.x = getNoteX(note.measure, note.beatPosition);
 
-function getPitchFromY(y) {
-    const step = Math.round((y - lineSpacing) / staffStep);
-
-    // Treble clef: garis paling atas adalah F.
-    // Bass clef: garis paling atas adalah A.
-    const topLineIndex = currentClef === "bass" ? 5 : 3;
-
-    return pitchNames[
-        ((topLineIndex - step) % 7 + 7) % 7
-    ];
+        if (note.element) {
+            note.element.style.left = `${note.x}px`;
+            note.element.style.top = `${note.y}px`;
+        }
+    });
 }
 
-// =========================
-// NOTE ELEMENTS
-// =========================
+// ========================================
+// NOTE & REST ELEMENTS
+// ========================================
 
 function createNoteElement(noteData) {
     const element = document.createElement("span");
@@ -214,13 +350,11 @@ function createNoteElement(noteData) {
 
     if (noteData.duration !== "whole") {
         const stem = document.createElement("span");
-
         stem.className = "stem";
         element.appendChild(stem);
 
         if (noteData.duration === "eighth") {
             const flag = document.createElement("span");
-
             flag.className = "flag";
             stem.appendChild(flag);
         }
@@ -248,48 +382,30 @@ function createRestElement(noteData) {
 function renderMusicElement(noteData) {
     const oldElement = noteData.element;
 
-    const newElement = noteData.isRest
+    const element = noteData.isRest
         ? createRestElement(noteData)
         : createNoteElement(noteData);
 
     if (oldElement?.isConnected) {
-        oldElement.replaceWith(newElement);
+        oldElement.replaceWith(element);
     } else {
-        staff.appendChild(newElement);
+        staff.appendChild(element);
     }
 
-    noteData.element = newElement;
+    noteData.element = element;
 }
 
-// =========================
-// REFLOW NOTES AND RESTS
-// =========================
-
-function reflowNotes() {
-    measures.forEach(measure => {
-        const measureNotes = notes
-            .filter(note => note.measure === measure.number)
-            .sort((a, b) => a.beatPosition - b.beatPosition);
-
-        measureNotes.forEach(note => {
-            note.x = getNoteX(note.measure, note.beatPosition);
-
-            note.element.style.left = `${note.x}px`;
-            note.element.style.top = `${note.y}px`;
-        });
-    });
-}
-
-// =========================
+// ========================================
 // DURATION TOOLBAR
-// =========================
+// ========================================
 
 function updateDurationButtons() {
     document.querySelectorAll("[data-duration]").forEach(button => {
-        const isSelected = button.dataset.duration === selectedDuration;
+        const selected =
+            button.dataset.duration === selectedDuration;
 
-        button.classList.toggle("active", isSelected);
-        button.setAttribute("aria-pressed", String(isSelected));
+        button.classList.toggle("active", selected);
+        button.setAttribute("aria-pressed", String(selected));
     });
 }
 
@@ -297,51 +413,41 @@ document.querySelectorAll("[data-duration]").forEach(button => {
     button.addEventListener("click", () => {
         const duration = button.dataset.duration;
 
-        if (!(duration in durationBeats)) {
-            console.warn("Durasi tidak dikenali:", duration);
+        if (!Object.hasOwn(durationBeats, duration)) {
+            console.warn("Unknown duration:", duration);
             return;
         }
 
         selectedDuration = duration;
         updateDurationButtons();
-
-        console.log("Duration selected:", selectedDuration);
     });
 });
 
-// =========================
+// ========================================
 // ADD NOTE
-// =========================
+// ========================================
 
 function addNote(y) {
-    const currentMeasure = getCurrentMeasure();
+    const measure = getCurrentMeasure();
     const beats = durationBeats[selectedDuration];
-
-    const usedBeats = getMeasureBeats(currentMeasure.number);
+    const usedBeats = getMeasureBeats(measure.number);
 
     if (usedBeats + beats > timeSignature.beats) {
-        console.warn(
-            `Not tidak bisa ditambahkan. Birama ${currentMeasure.number} ` +
-            `hanya memiliki ${timeSignature.beats - usedBeats} ketukan tersisa.`
-        );
-
+        console.warn("Measure capacity exceeded.");
         return;
     }
 
-    // Simpan posisi ketukan SEBELUM menambahkan not.
     const beatPosition = usedBeats;
-    const x = getNextBeatPosition(currentMeasure.number);
     const snappedY = getSnappedY(y);
-    const pitch = getPitchFromY(snappedY);
 
     const noteData = {
-        x,
+        x: getNextBeatPosition(measure.number),
         y: snappedY,
-        pitch,
+        pitch: getPitchFromY(snappedY),
         duration: selectedDuration,
         beats,
         beatPosition,
-        measure: currentMeasure.number,
+        measure: measure.number,
         isRest: false,
         element: null
     };
@@ -351,100 +457,61 @@ function addNote(y) {
     staff.appendChild(noteData.element);
     notes.push(noteData);
 
-    console.log(
-        `Note added: ${pitch} | Measure ${noteData.measure} | ` +
-        `Beat ${beatPosition} | ${selectedDuration}`
-    );
-
-    logMeasureStatus(noteData.measure);
-}
-
-function logMeasureStatus(measureNumber) {
-    console.log(
-        `Measure ${measureNumber} beats:`,
-        getMeasureBeats(measureNumber)
-    );
-
-    console.log(
-        `Measure ${measureNumber} status:`,
-        getMeasureStatus(measureNumber)
-    );
-
-    console.log("Current Measure:", getCurrentMeasure());
+    console.log("Note added:", {
+        pitch: noteData.pitch,
+        measure: noteData.measure,
+        beatPosition,
+        duration: selectedDuration,
+        status: getMeasureStatus(measure.number)
+    });
 }
 
 staff.addEventListener("click", event => {
     if (Date.now() < suppressClickUntil) return;
-
-    // Hanya klik area kosong yang menambahkan not.
     if (event.target !== staff) return;
 
     const rect = staff.getBoundingClientRect();
-    const y = event.clientY - rect.top;
 
-    addNote(y);
+    addNote(event.clientY - rect.top);
 });
 
-// =========================
+// ========================================
 // CONVERT NOTE TO REST
-// =========================
+// ========================================
 
 staff.addEventListener("dblclick", event => {
     const element = event.target.closest(".note");
 
     if (!element || !staff.contains(element)) return;
 
-    const noteData = notes.find(note => note.element === element);
+    const note = notes.find(item => item.element === element);
 
-    if (!noteData || noteData.isRest) return;
+    if (!note || note.isRest) return;
 
-    noteData.isRest = true;
-    noteData.pitch = null;
+    note.isRest = true;
+    note.pitch = null;
 
-    renderMusicElement(noteData);
+    renderMusicElement(note);
 
-    console.log("Note converted to rest:", {
-        duration: noteData.duration,
-        beats: noteData.beats,
-        beatPosition: noteData.beatPosition,
-        measure: noteData.measure
-    });
-
-    console.log(
-        `Measure ${noteData.measure} beats:`,
-        getMeasureBeats(noteData.measure)
-    );
-
-    console.log(
-        `Measure ${noteData.measure} status:`,
-        getMeasureStatus(noteData.measure)
-    );
+    console.log("Note converted to rest:", note.measure);
 });
 
-// =========================
-// DRAG NOTES
-// =========================
+// ========================================
+// DRAG NOTES VERTICALLY
+// ========================================
 
 staff.addEventListener("pointerdown", event => {
     const element = event.target.closest(".note");
 
-    // Rest bukan not bernada dan tidak bisa di-drag sebagai not.
     if (!element || !staff.contains(element)) return;
 
-    const noteData = notes.find(note => note.element === element);
+    const note = notes.find(item => item.element === element);
 
-    if (!noteData || noteData.isRest) return;
+    if (!note || note.isRest) return;
 
     draggedNote = element;
     hasDragged = false;
-
-    const rect = element.getBoundingClientRect();
-
-    dragOffsetX = event.clientX - rect.left;
-    dragOffsetY = event.clientY - rect.top;
-
-    dragStartX = noteData.x;
-    dragStartY = noteData.y;
+    dragStartY = note.y;
 
     element.setPointerCapture(event.pointerId);
 });
@@ -452,17 +519,9 @@ staff.addEventListener("pointerdown", event => {
 staff.addEventListener("pointermove", event => {
     if (!draggedNote) return;
 
-    const staffRect = staff.getBoundingClientRect();
+    const rect = staff.getBoundingClientRect();
+    const y = getSnappedY(event.clientY - rect.top);
 
-    const rawY =
-        event.clientY - staffRect.top - dragOffsetY;
-
-    const y = getSnappedY(rawY);
-
-    // Drag vertikal mengubah pitch.
-    // Posisi horizontal tetap mengikuti ketukan agar
-    // durasi dan urutan musik tidak rusak.
-    draggedNote.style.left = `${dragStartX}px`;
     draggedNote.style.top = `${y}px`;
 
     if (Math.abs(y - dragStartY) > 2) {
@@ -474,27 +533,16 @@ function finishDrag() {
     if (!draggedNote) return;
 
     const element = draggedNote;
-    const noteData = notes.find(note => note.element === element);
+    const note = notes.find(item => item.element === element);
 
-    if (noteData && hasDragged) {
-        const y = getSnappedY(parseFloat(element.style.top));
+    if (note && hasDragged) {
+        note.y = getSnappedY(parseFloat(element.style.top));
+        note.pitch = getPitchFromY(note.y);
+        note.x = getNoteX(note.measure, note.beatPosition);
 
-        noteData.y = y;
-        noteData.pitch = getPitchFromY(y);
-
-        element.dataset.pitch = noteData.pitch;
-
-        // Pastikan x tetap sesuai posisi ketukan.
-        noteData.x = getNoteX(noteData.measure, noteData.beatPosition);
-        element.style.left = `${noteData.x}px`;
-
-        console.log("Note moved:", {
-            measure: noteData.measure,
-            beatPosition: noteData.beatPosition,
-            pitch: noteData.pitch,
-            x: noteData.x,
-            y: noteData.y
-        });
+        element.dataset.pitch = note.pitch;
+        element.style.left = `${note.x}px`;
+        element.style.top = `${note.y}px`;
 
         suppressClickUntil = Date.now() + 300;
     }
@@ -506,35 +554,9 @@ function finishDrag() {
 staff.addEventListener("pointerup", finishDrag);
 staff.addEventListener("pointercancel", finishDrag);
 
-// =========================
-// INITIALIZE EDITOR
-// =========================
-
-renderStaffLines();
-renderMeasures();
-updateDurationButtons();
-
-console.log("LARAS notation engine initialized.");
-console.log("Time Signature:", timeSignature);
-console.log("Current Measure:", getCurrentMeasure());
-
-
- 
-// =========================
-// LARAS PROJECT MANAGEMENT
-// =========================
-
-const PROJECT_STORAGE_KEY = "laras_saved_compositions_v1";
-
-let currentProjectName = "Untitled composition";
-
-const projectStatus = document.getElementById("projectStatus");
-const newProjectButton = document.getElementById("newProject");
-const saveProjectButton = document.getElementById("saveProject");
-const openProjectButton = document.getElementById("openProject");
-const exportProjectButton = document.getElementById("exportProject");
-const importProjectButton = document.getElementById("importProject");
-const importProjectFile = document.getElementById("importProjectFile");
+// ========================================
+// PROJECT STORAGE
+// ========================================
 
 function updateProjectStatus(message) {
     if (projectStatus) {
@@ -547,13 +569,17 @@ function getSavedProjects() {
         const stored = localStorage.getItem(PROJECT_STORAGE_KEY);
         const projects = stored ? JSON.parse(stored) : {};
 
-        if (!projects || typeof projects !== "object" || Array.isArray(projects)) {
+        if (
+            !projects ||
+            typeof projects !== "object" ||
+            Array.isArray(projects)
+        ) {
             return {};
         }
 
         return projects;
     } catch (error) {
-        console.error("Unable to read saved projects:", error);
+        console.error("Could not read projects:", error);
         return {};
     }
 }
@@ -574,20 +600,18 @@ function buildProjectData() {
             beats: note.beats,
             beatPosition: note.beatPosition,
             measure: note.measure,
-            isRest: Boolean(note.isRest)
+            isRest: note.isRest
         })),
         updatedAt: new Date().toISOString()
     };
 }
 
 function saveProject() {
-    const nameInput = currentProjectName === "Untitled composition"
-        ? prompt("Nama komposisi:", currentProjectName)
-        : prompt("Simpan komposisi sebagai:", currentProjectName);
+    const input = prompt("Nama komposisi:", currentProjectName);
 
-    if (nameInput === null) return;
+    if (input === null) return;
 
-    const name = nameInput.trim();
+    const name = input.trim();
 
     if (!name) {
         alert("Nama komposisi tidak boleh kosong.");
@@ -596,8 +620,6 @@ function saveProject() {
 
     try {
         const projects = getSavedProjects();
-
-        currentProjectName = name;
 
         const data = buildProjectData();
         data.name = name;
@@ -609,20 +631,18 @@ function saveProject() {
             JSON.stringify(projects)
         );
 
+        currentProjectName = name;
         updateProjectStatus(`Saved: ${name}`);
 
         console.log("Project saved:", name);
     } catch (error) {
-        console.error("Unable to save project:", error);
-        alert("Komposisi gagal disimpan. Penyimpanan browser mungkin penuh atau tidak tersedia.");
+        console.error("Save failed:", error);
+        alert("Komposisi gagal disimpan di browser.");
     }
 }
 
 function clearComposition() {
-    notes.forEach(note => {
-        if (note.element) note.element.remove();
-    });
-
+    notes.forEach(note => note.element?.remove());
     notes.splice(0, notes.length);
 
     measures = [
@@ -635,23 +655,32 @@ function clearComposition() {
 
 function createNewProject() {
     if (notes.length > 0) {
-        const confirmed = confirm(
-            "Mulai komposisi baru? Pastikan komposisi saat ini sudah disimpan."
-        );
-
-        if (!confirmed) return;
+        if (!confirm("Mulai komposisi baru? Simpan pekerjaanmu terlebih dahulu.")) {
+            return;
+        }
     }
 
     clearComposition();
 
     currentProjectName = "Untitled composition";
-    updateProjectStatus(currentProjectName);
+    currentClef = "treble";
+    timeSignature.beats = 4;
+    timeSignature.beatUnit = 4;
+    selectedDuration = "quarter";
 
-    console.log("New composition created.");
+    renderClef();
+    renderTimeSignature();
+    updateDurationButtons();
+
+    updateProjectStatus(currentProjectName);
 }
 
+// ========================================
+// VALIDATE IMPORTED PROJECT
+// ========================================
+
 function normalizeProject(data) {
-    if (!data || typeof data !== "object" || data.format !== "LARAS") {
+    if (!data || data.format !== "LARAS") {
         throw new Error("File bukan komposisi LARAS yang valid.");
     }
 
@@ -659,53 +688,19 @@ function normalizeProject(data) {
         throw new Error("Data notasi atau birama tidak valid.");
     }
 
-    const validDurations = Object.keys(durationBeats);
+    const signature = data.timeSignature || {
+        beats: 4,
+        beatUnit: 4
+    };
 
-    const normalizedNotes = data.notes.map(note => {
-        if (
-            !note ||
-            !validDurations.includes(note.duration) ||
-            !Number.isInteger(note.measure) ||
-            note.measure < 1 ||
-            !Number.isFinite(note.beatPosition) ||
-            note.beatPosition < 0 ||
-            !Number.isFinite(note.y)
-        ) {
-            throw new Error("Ditemukan data notasi yang tidak valid.");
-        }
+    if (
+        ![2, 3, 4].includes(signature.beats) ||
+        signature.beatUnit !== 4
+    ) {
+        throw new Error("Time signature belum didukung.");
+    }
 
-        const beats = durationBeats[note.duration];
-
-        if (note.isRest) {
-            return {
-                x: Number(note.x) || 0,
-                y: note.y,
-                pitch: null,
-                duration: note.duration,
-                beats,
-                beatPosition: note.beatPosition,
-                measure: note.measure,
-                isRest: true,
-                element: null
-            };
-        }
-
-        if (!pitchNames.includes(note.pitch)) {
-            throw new Error("Ditemukan pitch yang tidak valid.");
-        }
-
-        return {
-            x: Number(note.x) || 0,
-            y: note.y,
-            pitch: note.pitch,
-            duration: note.duration,
-            beats,
-            beatPosition: note.beatPosition,
-            measure: note.measure,
-            isRest: false,
-            element: null
-        };
-    });
+    const clef = data.clef === "bass" ? "bass" : "treble";
 
     const normalizedMeasures = data.measures
         .filter(measure =>
@@ -723,32 +718,95 @@ function normalizeProject(data) {
         }))
         .sort((a, b) => a.number - b.number);
 
-    if (normalizedMeasures.length === 0) {
-        throw new Error("File tidak memiliki data birama yang valid.");
+    if (!normalizedMeasures.length) {
+        throw new Error("Tidak ditemukan birama yang valid.");
     }
 
-    const maxMeasureNumber = Math.max(
+    const normalizedNotes = data.notes.map(note => {
+        if (
+            !note ||
+            !Object.hasOwn(durationBeats, note.duration) ||
+            !Number.isInteger(note.measure) ||
+            note.measure < 1 ||
+            !Number.isFinite(note.beatPosition) ||
+            note.beatPosition < 0 ||
+            !Number.isFinite(note.y)
+        ) {
+            throw new Error("Data salah satu not tidak valid.");
+        }
+
+        const isRest = Boolean(note.isRest);
+        const pitch = isRest ? null : note.pitch;
+
+        if (!isRest && !pitchNames.includes(pitch)) {
+            throw new Error("Pitch pada file tidak valid.");
+        }
+
+        return {
+            x: Number.isFinite(note.x) ? note.x : 0,
+            y: note.y,
+            pitch,
+            duration: note.duration,
+            beats: durationBeats[note.duration],
+            beatPosition: note.beatPosition,
+            measure: note.measure,
+            isRest,
+            element: null
+        };
+    });
+
+    const maxMeasure = Math.max(
         2,
-        ...normalizedNotes.map(note => note.measure),
-        ...normalizedMeasures.map(measure => measure.number)
+        ...normalizedMeasures.map(measure => measure.number),
+        ...normalizedNotes.map(note => note.measure)
     );
+
+    if (maxMeasure > 500) {
+        throw new Error("File memiliki terlalu banyak birama.");
+    }
 
     const firstMeasure = normalizedMeasures[0];
-    const measureWidth = firstMeasure.endX - firstMeasure.startX;
+    const width = firstMeasure.endX - firstMeasure.startX;
+    const measureMap = new Map();
 
-    const measureMap = new Map(
-        normalizedMeasures.map(measure => [measure.number, measure])
-    );
+    normalizedMeasures.forEach(measure => {
+        measureMap.set(measure.number, measure);
+    });
 
-    for (let number = 1; number <= maxMeasureNumber; number++) {
+    for (let number = 1; number <= maxMeasure; number++) {
         if (!measureMap.has(number)) {
-            const startX = firstMeasure.startX + (number - 1) * measureWidth;
+            const startX = firstMeasure.startX + (number - 1) * width;
 
             measureMap.set(number, {
                 number,
                 startX,
-                endX: startX + measureWidth
+                endX: startX + width
             });
+        }
+    }
+
+    const finalMeasures = Array.from(measureMap.values())
+        .sort((a, b) => a.number - b.number);
+
+    // Verify that notes do not overlap or exceed measure capacity.
+    for (const measure of finalMeasures) {
+        const measureNotes = normalizedNotes
+            .filter(note => note.measure === measure.number)
+            .sort((a, b) => a.beatPosition - b.beatPosition);
+
+        let previousEnd = 0;
+
+        for (const note of measureNotes) {
+            if (
+                note.beatPosition + note.beats > signature.beats ||
+                note.beatPosition < previousEnd
+            ) {
+                throw new Error(
+                    `Susunan ketukan pada birama ${measure.number} tidak valid.`
+                );
+            }
+
+            previousEnd = note.beatPosition + note.beats;
         }
     }
 
@@ -756,56 +814,59 @@ function normalizeProject(data) {
         name: typeof data.name === "string" && data.name.trim()
             ? data.name.trim()
             : "Imported composition",
-        notes: normalizedNotes,
-        measures: Array.from(measureMap.values())
-            .sort((a, b) => a.number - b.number)
+        clef,
+        timeSignature: {
+            beats: signature.beats,
+            beatUnit: signature.beatUnit
+        },
+        measures: finalMeasures,
+        notes: normalizedNotes
     };
 }
 
+// ========================================
+// LOAD PROJECT
+// ========================================
+
 function loadProjectData(data) {
-    const normalized = normalizeProject(data);
-
-    // Validate the complete composition before replacing the current one.
-    const measureMap = new Map(
-        normalized.measures.map(measure => [measure.number, measure])
-    );
-
-    for (const note of normalized.notes) {
-        const measure = measureMap.get(note.measure);
-
-        if (!measure) {
-            throw new Error("Birama untuk salah satu not tidak ditemukan.");
-        }
-
-        if (note.beatPosition + note.beats > timeSignature.beats) {
-            throw new Error("Terdapat not yang melebihi kapasitas birama 4/4.");
-        }
-    }
+    // Validate everything before replacing the current composition.
+    const project = normalizeProject(data);
 
     clearComposition();
 
-    measures = normalized.measures;
-    currentProjectName = normalized.name;
+    currentProjectName = project.name;
+    currentClef = project.clef;
 
-    normalized.notes.forEach(note => {
+    timeSignature.beats = project.timeSignature.beats;
+    timeSignature.beatUnit = project.timeSignature.beatUnit;
+
+    measures = project.measures;
+
+    project.notes.forEach(note => {
         notes.push(note);
         renderMusicElement(note);
     });
 
     renderMeasures();
     reflowNotes();
+    refreshNotePitches();
 
+    renderClef();
+    renderTimeSignature();
     updateProjectStatus(`Opened: ${currentProjectName}`);
 
-    console.log("Project opened:", currentProjectName);
-    console.log("Loaded notes:", notes.length);
+    console.log("Project loaded:", currentProjectName);
 }
+
+// ========================================
+// OPEN PROJECT
+// ========================================
 
 function openProject() {
     const projects = getSavedProjects();
     const names = Object.keys(projects);
 
-    if (names.length === 0) {
+    if (!names.length) {
         alert("Belum ada komposisi tersimpan di browser ini.");
         return;
     }
@@ -815,7 +876,7 @@ function openProject() {
         .join("\n");
 
     const choice = prompt(
-        `Pilih nomor komposisi yang ingin dibuka:\n\n${menu}`
+        `Pilih nomor komposisi:\n\n${menu}`
     );
 
     if (choice === null) return;
@@ -823,35 +884,36 @@ function openProject() {
     const index = Number(choice) - 1;
 
     if (!Number.isInteger(index) || index < 0 || index >= names.length) {
-        alert("Pilihan tidak valid.");
+        alert("Nomor komposisi tidak valid.");
         return;
     }
 
-    const name = names[index];
-
-    if (notes.length > 0) {
-        const confirmed = confirm(
-            "Membuka komposisi akan mengganti notasi saat ini. Lanjutkan?"
-        );
-
-        if (!confirmed) return;
+    if (
+        notes.length > 0 &&
+        !confirm("Komposisi saat ini akan diganti. Lanjutkan?")
+    ) {
+        return;
     }
 
     try {
-        loadProjectData(projects[name]);
+        loadProjectData(projects[names[index]]);
     } catch (error) {
-        console.error("Unable to open project:", error);
-        alert(`Komposisi tidak dapat dibuka: ${error.message}`);
+        console.error("Open failed:", error);
+        alert(`Komposisi gagal dibuka: ${error.message}`);
     }
 }
+
+// ========================================
+// EXPORT PROJECT AS JSON
+// ========================================
 
 function exportProject() {
     try {
         const data = buildProjectData();
-        const json = JSON.stringify(data, null, 2);
-        const blob = new Blob([json], {
-            type: "application/json"
-        });
+        const blob = new Blob(
+            [JSON.stringify(data, null, 2)],
+            { type: "application/json" }
+        );
 
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -867,7 +929,7 @@ function exportProject() {
         link.click();
         link.remove();
 
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
 
         updateProjectStatus(`Exported: ${currentProjectName}`);
     } catch (error) {
@@ -876,11 +938,44 @@ function exportProject() {
     }
 }
 
+// ========================================
+// IMPORT PROJECT FROM JSON
+// ========================================
+
 function importProject() {
-    if (importProjectFile) {
-        importProjectFile.click();
-    }
+    importProjectFile?.click();
 }
+
+if (importProjectFile) {
+    importProjectFile.addEventListener("change", async event => {
+        const file = event.target.files?.[0];
+
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+
+            if (
+                notes.length > 0 &&
+                !confirm("Komposisi saat ini akan diganti. Lanjutkan impor?")
+            ) {
+                return;
+            }
+
+            loadProjectData(data);
+        } catch (error) {
+            console.error("Import failed:", error);
+            alert(`Impor gagal: ${error.message}`);
+        } finally {
+            importProjectFile.value = "";
+        }
+    });
+}
+
+// ========================================
+// CONNECT PROJECT BUTTONS
+// ========================================
 
 if (newProjectButton) {
     newProjectButton.addEventListener("click", createNewProject);
@@ -902,143 +997,17 @@ if (importProjectButton) {
     importProjectButton.addEventListener("click", importProject);
 }
 
-if (importProjectFile) {
-    importProjectFile.addEventListener("change", async event => {
-        const file = event.target.files?.[0];
+// ========================================
+// INITIALIZE LARAS
+// ========================================
 
-        if (!file) return;
-
-        try {
-            const text = await file.text();
-            const data = JSON.parse(text);
-
-            if (notes.length > 0) {
-                const confirmed = confirm(
-                    "Mengimpor file akan mengganti notasi saat ini. Lanjutkan?"
-                );
-
-                if (!confirmed) return;
-            }
-
-            loadProjectData(data);
-        } catch (error) {
-            console.error("Import failed:", error);
-            alert(`File gagal diimpor: ${error.message}`);
-        } finally {
-            event.target.value = "";
-        }
-    });
-}
-
-updateProjectStatus(currentProjectName);
-
-
-// =========================
-// CLEF & TIME SIGNATURE
-// =========================
-
-let currentClef = "treble";
-
-const clefControl = document.getElementById("trebleClef");
-const signatureControl = document.getElementById("timeSignature");
-
-function renderClef() {
-    const clefElement = document.querySelector(".clef");
-
-    if (clefElement) {
-        clefElement.textContent =
-            currentClef === "bass" ? "𝄢" : "𝄞";
-    }
-
-    if (clefControl) {
-        clefControl.textContent =
-            currentClef === "bass" ? "Bass Clef" : "Treble Clef";
-    }
-}
-
-function renderTimeSignature() {
-    const signature = document.querySelector(".time-signature");
-
-    if (signature) {
-        signature.innerHTML = `
-            <span>${timeSignature.beats}</span>
-            <span>${timeSignature.beatUnit}</span>
-        `;
-    }
-
-    if (signatureControl) {
-        signatureControl.textContent =
-            `${timeSignature.beats}/${timeSignature.beatUnit}`;
-    }
-}
-
-function refreshNotePitches() {
-    notes.forEach(note => {
-        if (note.isRest) return;
-
-        note.pitch = getPitchFromY(note.y);
-
-        if (note.element) {
-            note.element.dataset.pitch = note.pitch;
-        }
-    });
-}
-
-if (clefControl) {
-    clefControl.addEventListener("click", () => {
-        currentClef =
-            currentClef === "treble" ? "bass" : "treble";
-
-        renderClef();
-        refreshNotePitches();
-
-        console.log("Clef changed:", currentClef);
-    });
-}
-
-// Only allow time signatures supported by the current engine.
-const supportedTimeSignatures = [
-    { beats: 2, beatUnit: 4 },
-    { beats: 3, beatUnit: 4 },
-    { beats: 4, beatUnit: 4 }
-];
-
-if (signatureControl) {
-    signatureControl.addEventListener("click", () => {
-        const currentIndex = supportedTimeSignatures.findIndex(
-            signature =>
-                signature.beats === timeSignature.beats &&
-                signature.beatUnit === timeSignature.beatUnit
-        );
-
-        const nextIndex =
-            (currentIndex + 1) % supportedTimeSignatures.length;
-
-        const nextSignature =
-            supportedTimeSignatures[nextIndex];
-
-        const hasOverflow = measures.some(measure =>
-            getMeasureBeats(measure.number) > nextSignature.beats
-        );
-
-        if (hasOverflow) {
-            alert(
-                `Birama ${nextSignature.beats}/4 tidak dapat digunakan karena ada birama yang berisi lebih dari ${nextSignature.beats} ketukan.`
-            );
-            return;
-        }
-
-        timeSignature.beats = nextSignature.beats;
-        timeSignature.beatUnit = nextSignature.beatUnit;
-
-        renderTimeSignature();
-        reflowNotes();
-
-        console.log("Time signature changed:", {
-            ...timeSignature
-        });
-    });
-}
-
+renderStaffLines();
+renderMeasures();
 renderClef();
 renderTimeSignature();
+updateDurationButtons();
+updateProjectStatus(currentProjectName);
+
+console.log("LARAS notation engine initialized.");
+console.log("Clef:", currentClef);
+console.log("Time signature:", { ...timeSignature });
