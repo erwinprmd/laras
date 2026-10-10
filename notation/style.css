@@ -1,32 +1,95 @@
 
+/* ========================================
+   LARAS — DARK MUSIC STUDIO
+======================================== */
+
 :root {
-    --bg: #f7f5f0;
-    --text: #1c211f;
-    --muted: #65735e;
-    --border: rgba(28, 33, 31, 0.12);
-    --surface: #ffffff;
+    color-scheme: dark;
+
+    --bg: #090b14;
+    --surface: #111525;
+    --surface-raised: #171c30;
+    --surface-hover: #202641;
+
+    --text: #f4f5fc;
+    --muted: #9aa2bd;
+    --border: rgba(173, 164, 255, 0.17);
+
+    --accent: #8b5cf6;
+    --accent-hover: #a78bfa;
+    --accent-soft: rgba(139, 92, 246, 0.14);
+    --accent-border: rgba(167, 139, 250, 0.4);
+
+    --staff-line: #c6cbe0;
+    --note-color: #c4b5fd;
+
+    --radius: 12px;
+    --shadow: 0 18px 55px rgba(0, 0, 0, 0.2);
 }
 
 * {
     box-sizing: border-box;
 }
 
-body {
-    margin: 0;
+html {
+    min-width: 320px;
     background: var(--bg);
-    color: var(--text);
-    font-family: Arial, sans-serif;
+    scroll-behavior: smooth;
 }
 
-/* HEADER */
+body {
+    min-width: 320px;
+    margin: 0;
+    background:
+        radial-gradient(
+            ellipse at 50% 0%,
+            rgba(91, 63, 164, 0.13),
+            transparent 48rem
+        ),
+        var(--bg);
+    color: var(--text);
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--accent-hover);
+    outline-offset: 3px;
+}
+
+a {
+    color: inherit;
+}
+
+/* ========================================
+   HEADER
+======================================== */
 
 .notation-header {
+    position: relative;
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
-    padding: 22px 5%;
+
+    padding: 18px 5%;
+
     border-bottom: 1px solid var(--border);
+    background: rgba(9, 11, 20, 0.84);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
 
 .notation-brand {
@@ -34,14 +97,20 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
-    font-size: 0.9rem;
+
+    min-width: 0;
+    font-size: 0.85rem;
 }
 
 .notation-brand a {
     color: var(--text);
     text-decoration: none;
-    font-weight: 700;
-    letter-spacing: 0.12em;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+}
+
+.notation-brand span:nth-child(2) {
+    color: var(--accent);
 }
 
 .notation-brand span:last-child {
@@ -49,53 +118,78 @@ body {
 }
 
 .back-link {
-    color: var(--text);
+    flex: 0 0 auto;
+    color: var(--muted);
     font-size: 0.85rem;
     text-decoration: none;
+    transition: color 0.2s ease;
 }
 
-/* WORKSPACE */
+.back-link:hover {
+    color: var(--accent-hover);
+}
+
+/* ========================================
+   WORKSPACE
+======================================== */
 
 .notation-workspace {
     width: min(1200px, calc(100% - 40px));
     margin: 0 auto;
-    padding: 100px 0;
+    padding: 82px 0 90px;
+}
+
+.workspace-intro {
+    max-width: 950px;
 }
 
 .eyebrow {
-    margin: 0 0 20px;
-    color: var(--muted);
-    font-size: 0.75rem;
+    margin: 0 0 16px;
+    color: var(--accent-hover);
+    font-size: 0.72rem;
     font-weight: 700;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
 }
 
 .workspace-intro h1 {
+    max-width: 950px;
     margin: 0;
-    font-size: clamp(3.5rem, 8vw, 7rem);
-    line-height: 0.9;
-    letter-spacing: -0.06em;
+
+    font-size: clamp(2.8rem, 7vw, 6.2rem);
+    line-height: 0.99;
+    letter-spacing: -0.065em;
+    overflow-wrap: anywhere;
 }
 
 .workspace-intro p:last-child {
-    max-width: 550px;
-    margin-top: 35px;
-    color: #59615d;
-    font-size: 1.05rem;
-    line-height: 1.7;
+    max-width: 570px;
+    margin-top: 24px;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.8;
 }
 
-/* EDITOR SHELL */
+/* ========================================
+   EDITOR SHELL
+======================================== */
 
 .notation-editor {
     width: 100%;
     min-width: 0;
-    margin-top: 100px;
+    margin-top: 64px;
+
     overflow: hidden;
+
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: var(--radius);
     background: var(--surface);
+    box-shadow: var(--shadow);
 }
+
+/* ========================================
+   PROJECT TOOLBAR
+======================================== */
 
 .project-toolbar,
 .editor-toolbar {
@@ -103,7 +197,7 @@ body {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    padding: 15px;
+    padding: 14px 16px;
 }
 
 .project-toolbar {
@@ -113,95 +207,361 @@ body {
 
 .editor-toolbar {
     border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    background: #0d1120;
 }
 
 .project-toolbar button,
 .editor-toolbar button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
     flex: 0 0 auto;
     min-height: 38px;
-    padding: 9px 14px;
+    min-width: 40px;
+
+    padding: 8px 13px;
+
     border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--surface);
+    border-radius: 7px;
+
+    background: var(--surface-raised);
     color: var(--text);
-    font: inherit;
-    font-size: 0.85rem;
+
+    font-size: 0.83rem;
     cursor: pointer;
+
     transition:
-        background-color 0.15s ease,
-        color 0.15s ease,
-        border-color 0.15s ease;
+        background 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        transform 0.18s ease;
 }
 
 .project-toolbar button:hover,
 .editor-toolbar button:hover {
-    border-color: var(--muted);
+    border-color: var(--accent-border);
+    background: var(--surface-hover);
+}
+
+.project-toolbar button:active,
+.editor-toolbar button:active {
+    transform: translateY(1px);
+}
+
+.project-toolbar button:focus-visible,
+.editor-toolbar button:focus-visible {
+    outline: 2px solid var(--accent-hover);
+    outline-offset: 2px;
+}
+
+.editor-toolbar button[data-duration] {
+    font-size: 1.2rem;
 }
 
 .editor-toolbar button.active,
 .editor-toolbar button[data-duration].active {
-    border-color: var(--muted);
-    background: var(--muted);
-    color: white;
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #ffffff;
+    box-shadow: 0 0 18px rgba(139, 92, 246, 0.17);
 }
+
+/* ========================================
+   PROJECT STATUS
+======================================== */
 
 .project-status {
     margin: 0;
-    padding: 12px 15px;
+    padding: 11px 16px;
+
     border-bottom: 1px solid var(--border);
+
+    background: #0e1221;
+    color: var(--muted);
+
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+}
+
+/* ========================================
+   MIDI IMPORTER
+======================================== */
+
+.midi-importer {
+    margin: 22px;
+    padding: 24px;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(139, 92, 246, 0.07),
+            transparent 65%
+        ),
+        #0d1120;
+}
+
+.midi-importer-heading {
+    margin-bottom: 22px;
+}
+
+.midi-importer-heading .eyebrow {
+    margin-bottom: 8px;
+}
+
+.midi-importer-heading h2 {
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: clamp(1.3rem, 3vw, 1.65rem);
+    line-height: 1.3;
+    letter-spacing: -0.025em;
+}
+
+.midi-importer-heading > p:last-child {
+    max-width: 550px;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.7;
+}
+
+/* File picker */
+
+.midi-file-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    width: 100%;
+    min-height: 180px;
+    padding: 24px;
+
+    border: 1px dashed rgba(167, 139, 250, 0.48);
+    border-radius: 10px;
+
+    background: rgba(139, 92, 246, 0.045);
+    text-align: center;
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.midi-file-picker:hover {
+    border-color: var(--accent-hover);
+    background: var(--accent-soft);
+}
+
+.midi-file-picker:focus-within {
+    outline: 2px solid var(--accent-hover);
+    outline-offset: 3px;
+}
+
+.midi-file-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 48px;
+    height: 48px;
+
+    border: 1px solid var(--accent-border);
+    border-radius: 12px;
+
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+
+    font-size: 1.8rem;
+    line-height: 1;
+}
+
+.midi-file-picker-title {
+    color: var(--text);
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.midi-file-picker-description {
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+/* Keep the native file control usable and contained */
+
+#midiFileInput {
+    display: block;
+    width: 100%;
+    max-width: 330px;
+    margin-top: 4px;
+
     color: var(--muted);
     font-size: 0.8rem;
 }
 
-/* STAFF VIEWPORT */
+#midiFileInput::file-selector-button {
+    margin-right: 8px;
+    padding: 7px 10px;
+
+    border: 1px solid var(--accent-border);
+    border-radius: 6px;
+
+    background: var(--surface-raised);
+    color: var(--text);
+
+    font: inherit;
+    cursor: pointer;
+}
+
+#midiFileInput::file-selector-button:hover {
+    background: var(--surface-hover);
+}
+
+/* Import status */
+
+.midi-import-status {
+    margin-top: 14px;
+    padding: 11px 13px;
+
+    border: 1px solid var(--border);
+    border-radius: 7px;
+
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--muted);
+
+    font-size: 0.83rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* MIDI metadata */
+
+.midi-analysis {
+    margin-top: 24px;
+    padding-top: 22px;
+    border-top: 1px solid var(--border);
+}
+
+.midi-analysis h3 {
+    margin: 0 0 15px;
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.midi-metadata {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 0;
+}
+
+.midi-metadata > div {
+    min-width: 0;
+    padding: 14px;
+
+    border: 1px solid var(--border);
+    border-radius: 8px;
+
+    background: var(--surface);
+}
+
+.midi-metadata dt {
+    margin-bottom: 7px;
+    color: var(--muted);
+    font-size: 0.77rem;
+}
+
+.midi-metadata dd {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.92rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.midi-analysis-note {
+    margin: 15px 0 0;
+    color: var(--muted);
+    font-size: 0.8rem;
+    line-height: 1.7;
+}
+
+/* ========================================
+   STAFF VIEWPORT
+======================================== */
 
 .staff-area {
     position: relative;
+
     display: flex;
     align-items: flex-start;
     gap: 0;
+
     width: 100%;
     min-width: 0;
     min-height: 280px;
+
     padding: 65px 24px 45px;
+
     overflow-x: auto;
     overflow-y: hidden;
-    background: var(--surface);
+
+    background: #0c1020;
+
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+    scrollbar-color: #66519a #151a2d;
 }
 
 .staff-area::-webkit-scrollbar {
-    height: 7px;
+    height: 8px;
+}
+
+.staff-area::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background: #151a2d;
 }
 
 .staff-area::-webkit-scrollbar-thumb {
+    border: 2px solid #151a2d;
     border-radius: 10px;
-    background: rgba(101, 115, 94, 0.4);
+    background: #66519a;
 }
 
-/* CLEF AND TIME SIGNATURE */
+/* ========================================
+   CLEF AND TIME SIGNATURE
+======================================== */
 
 .notation-signature {
     position: sticky;
     left: 0;
     z-index: 5;
+
     flex: 0 0 76px;
+
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 7px;
+
     height: 132px;
-    background: var(--surface);
+
+    background: #0c1020;
 }
 
 .clef {
     display: flex;
     align-items: center;
     justify-content: center;
+
     color: var(--text);
+
     font-family: "Segoe UI Symbol", "Noto Music", serif;
     font-size: 64px;
     line-height: 1;
@@ -212,23 +572,32 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
+    color: var(--text);
+
     font-family: Arial, sans-serif;
     font-size: 22px;
     font-weight: 700;
     line-height: 0.95;
 }
 
-/* STAFF AND BARLINES */
+/* ========================================
+   STAFF AND BARLINES
+======================================== */
 
 .staff {
     position: relative;
+
     flex: 0 0 auto;
+
     width: 2000px;
     min-width: 2000px;
     height: 132px;
+
     margin: 0;
     padding: 0;
     overflow: visible;
+
     background: transparent;
     isolation: isolate;
 }
@@ -236,38 +605,52 @@ body {
 .staff-line {
     position: absolute;
     left: 100px;
+
     height: 1px;
     margin: 0;
-    background: var(--text);
-    opacity: 0.75;
+
+    background: var(--staff-line);
+    opacity: 0.72;
+
     pointer-events: none;
     z-index: 0;
 }
 
 .barline {
     position: absolute;
+
     top: 22px;
     bottom: 22px;
     width: 1px;
+
     margin: 0;
-    background: var(--text);
-    opacity: 0.8;
+
+    background: var(--staff-line);
+    opacity: 0.82;
+
     pointer-events: none;
     z-index: 1;
 }
 
-/* NOTES */
+/* ========================================
+   NOTES
+======================================== */
 
 .note {
     position: absolute;
     z-index: 3;
+
     width: 14px;
     height: 10px;
-    border: 2px solid var(--text);
+
+    border: 2px solid var(--note-color);
     border-radius: 50%;
-    background: var(--text);
+
+    background: var(--note-color);
+
     transform: translate(-50%, -50%);
     cursor: grab;
+
     user-select: none;
     touch-action: none;
 }
@@ -278,102 +661,233 @@ body {
 
 .note .stem {
     position: absolute;
+
     right: -1px;
     bottom: 4px;
+
     width: 2px;
     height: 32px;
-    background: var(--text);
+
+    background: var(--note-color);
     pointer-events: none;
 }
 
 .note.half {
-    background: var(--surface);
+    background: #0c1020;
 }
 
 .note.whole {
     width: 17px;
     height: 11px;
+
     border-width: 2px;
-    background: var(--surface);
+    background: #0c1020;
 }
 
 .note.eighth .flag {
     position: absolute;
+
     top: 0;
     left: 0;
+
     width: 12px;
     height: 10px;
-    border-top: 2px solid var(--text);
+
+    border-top: 2px solid var(--note-color);
     border-radius: 0 8px 0 0;
+
     pointer-events: none;
 }
 
-/* RESTS */
+/* ========================================
+   RESTS
+======================================== */
 
 .rest {
     position: absolute;
     z-index: 3;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     width: 18px;
     height: 28px;
-    color: var(--text);
+
+    color: var(--note-color);
+
     font-family: "Segoe UI Symbol", "Noto Music", "Times New Roman", serif;
     font-size: 30px;
     line-height: 1;
+
     transform: translate(-50%, -50%);
+
     user-select: none;
     pointer-events: none;
 }
 
-/* FOOTER */
+/* ========================================
+   FOOTER
+======================================== */
 
 footer {
-    padding: 40px 5%;
+    padding: 28px 5%;
+
     border-top: 1px solid var(--border);
+
+    background: rgba(9, 11, 20, 0.7);
     color: var(--muted);
+
     font-size: 0.8rem;
+    text-align: center;
 }
 
-/* RESPONSIVE */
+footer p {
+    margin: 0;
+}
 
-@media (max-width: 700px) {
+/* ========================================
+   RESPONSIVE — TABLET
+======================================== */
+
+@media (max-width: 900px) {
+    .notation-workspace {
+        padding-top: 68px;
+    }
+
+    .midi-metadata {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ========================================
+   RESPONSIVE — MOBILE
+======================================== */
+
+@media (max-width: 600px) {
     .notation-header {
-        align-items: flex-start;
-        gap: 16px;
-        padding: 18px 5%;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 5%;
+    }
+
+    .notation-brand {
+        gap: 8px;
+        font-size: 0.76rem;
+    }
+
+    .back-link {
+        font-size: 0.76rem;
     }
 
     .notation-workspace {
         width: calc(100% - 28px);
-        padding: 65px 0;
+        padding: 52px 0 60px;
+    }
+
+    .eyebrow {
+        margin-bottom: 12px;
+        font-size: 0.68rem;
     }
 
     .workspace-intro h1 {
-        font-size: clamp(3rem, 15vw, 5rem);
+        font-size: clamp(2.7rem, 12vw, 4.4rem);
+        line-height: 1.02;
     }
 
     .workspace-intro p:last-child {
-        margin-top: 24px;
-        font-size: 0.95rem;
+        margin-top: 20px;
+        font-size: 0.92rem;
+        line-height: 1.75;
     }
 
     .notation-editor {
-        margin-top: 55px;
+        margin-top: 40px;
+        border-radius: 10px;
     }
 
     .project-toolbar,
     .editor-toolbar {
-        gap: 6px;
+        gap: 7px;
         padding: 10px;
     }
 
     .project-toolbar button,
     .editor-toolbar button {
         min-height: 36px;
-        padding: 8px 10px;
-        font-size: 0.8rem;
+        padding: 7px 10px;
+        font-size: 0.77rem;
+    }
+
+    .editor-toolbar button[data-duration] {
+        min-width: 38px;
+        font-size: 1.1rem;
+    }
+
+    .project-status {
+        padding: 10px 12px;
+        font-size: 0.76rem;
+    }
+
+    .midi-importer {
+        margin: 12px;
+        padding: 16px;
+        border-radius: 9px;
+    }
+
+    .midi-importer-heading {
+        margin-bottom: 17px;
+    }
+
+    .midi-importer-heading h2 {
+        font-size: 1.3rem;
+    }
+
+    .midi-importer-heading > p:last-child {
+        font-size: 0.85rem;
+    }
+
+    .midi-file-picker {
+        min-height: 160px;
+        gap: 9px;
+        padding: 16px 10px;
+    }
+
+    .midi-file-picker-title {
+        font-size: 0.88rem;
+    }
+
+    .midi-file-picker-description {
+        font-size: 0.76rem;
+        line-height: 1.5;
+    }
+
+    #midiFileInput {
+        max-width: 100%;
+        font-size: 0.73rem;
+    }
+
+    #midiFileInput::file-selector-button {
+        margin-right: 4px;
+        padding: 6px 7px;
+        font-size: 0.73rem;
+    }
+
+    .midi-metadata {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .midi-metadata > div {
+        padding: 11px;
+    }
+
+    .midi-metadata dt {
+        font-size: 0.72rem;
+    }
+
+    .midi-metadata dd {
+        font-size: 0.84rem;
     }
 
     .staff-area {
@@ -398,147 +912,49 @@ footer {
     .staff {
         height: 120px;
     }
+
+    footer {
+        padding: 24px 5%;
+    }
 }
 
-css
 /* ========================================
-   MIDI IMPORTER
+   RESPONSIVE — SMALL MOBILE
 ======================================== */
 
-.midi-importer {
-    margin: 28px 0;
-    padding: 24px;
-    border: 1px solid rgba(28, 33, 31, 0.14);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.45);
-}
-
-.midi-importer-heading {
-    margin-bottom: 20px;
-}
-
-.midi-importer-heading h2 {
-    margin: 6px 0 8px;
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.midi-importer-heading > p:last-child {
-    margin: 0;
-    color: #65735e;
-    line-height: 1.7;
-}
-
-.midi-file-picker {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    min-height: 170px;
-    padding: 24px;
-    border: 1.5px dashed rgba(101, 115, 94, 0.6);
-    border-radius: 12px;
-    text-align: center;
-    cursor: pointer;
-    transition:
-        background 0.2s ease,
-        border-color 0.2s ease;
-}
-
-.midi-file-picker:hover {
-    background: rgba(101, 115, 94, 0.07);
-    border-color: #65735e;
-}
-
-.midi-file-picker:focus-within {
-    outline: 2px solid #65735e;
-    outline-offset: 3px;
-}
-
-.midi-file-icon {
-    font-size: 2.2rem;
-    line-height: 1;
-}
-
-.midi-file-picker-title {
-    font-weight: 600;
-}
-
-.midi-file-picker-description {
-    color: #65735e;
-    font-size: 0.9rem;
-}
-
-#midiFileInput {
-    max-width: 100%;
-    font: inherit;
-    font-size: 0.85rem;
-}
-
-.midi-import-status {
-    margin-top: 14px;
-    color: #65735e;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    overflow-wrap: anywhere;
-}
-
-.midi-analysis {
-    margin-top: 24px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(28, 33, 31, 0.12);
-}
-
-.midi-analysis h3 {
-    margin: 0 0 16px;
-    font-size: 1.05rem;
-}
-
-.midi-metadata {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-    margin: 0;
-}
-
-.midi-metadata > div {
-    min-width: 0;
-    padding: 14px;
-    border-radius: 10px;
-    background: rgba(101, 115, 94, 0.07);
-}
-
-.midi-metadata dt {
-    margin-bottom: 6px;
-    color: #65735e;
-    font-size: 0.82rem;
-}
-
-.midi-metadata dd {
-    margin: 0;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-}
-
-.midi-analysis-note {
-    margin: 16px 0 0;
-    color: #65735e;
-    font-size: 0.85rem;
-    line-height: 1.6;
-}
-
-@media (max-width: 600px) {
-    .midi-importer {
-        padding: 16px;
-        margin: 20px 0;
+@media (max-width: 360px) {
+    .notation-brand {
+        gap: 6px;
+        font-size: 0.7rem;
     }
 
-    .midi-file-picker {
-        padding: 18px 12px;
+    .back-link {
+        font-size: 0.7rem;
     }
 
     .midi-metadata {
         grid-template-columns: 1fr;
+    }
+
+    .project-toolbar,
+    .editor-toolbar {
+        gap: 6px;
+        padding: 8px;
+    }
+
+    .project-toolbar button,
+    .editor-toolbar button {
+        padding: 7px 8px;
+        font-size: 0.73rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
     }
 }
