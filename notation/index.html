@@ -1,13 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Music Notation — LARAS</title>
 
@@ -16,132 +13,162 @@
         content="LARAS Music Notation — digital music notation workspace."
     >
 
+    <meta name="theme-color" content="#f7f5f0">
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
     <header class="notation-header">
-
         <div class="notation-brand">
-
-            <a href="../">
-                LARAS
-            </a>
-
+            <a href="../">LARAS</a>
             <span>/</span>
-
             <span>Music Notation</span>
-
         </div>
 
-        <a
-            href="../"
-            class="back-link"
-        >
+        <a href="../" class="back-link">
             Back to LARAS
         </a>
-
     </header>
-
 
     <main class="notation-workspace">
 
         <section class="workspace-intro">
+            <p class="eyebrow">MUSIC NOTATION</p>
 
-            <p class="eyebrow">
-                MUSIC NOTATION
-            </p>
-
-            <h1>
-                Write music.
-            </h1>
+            <h1>Write music.</h1>
 
             <p>
                 A simple workspace for creating
                 and exploring musical notation.
             </p>
-
         </section>
-
 
         <section class="notation-editor">
 
-    <div class="editor-toolbar">
+            <!-- PROJECT ACTIONS -->
+            <div class="project-toolbar">
 
-        <button type="button">
-            Treble Clef
-        </button>
+                <button type="button" id="newProject">
+                    New
+                </button>
 
-        <button type="button">
-            4/4
-        </button>
+                <button type="button" id="saveProject">
+                    Save
+                </button>
 
-        <button type="button" data-duration="whole">
-            𝅝
-        </button>
+                <button type="button" id="openProject">
+                    Open
+                </button>
 
-        <button type="button" data-duration="half">
-            𝅗𝅥
-        </button>
+                <button type="button" id="exportProject">
+                    Export
+                </button>
 
-        <button type="button" data-duration="quarter">
-            ♩
-        </button>
+                <button type="button" id="importProject">
+                    Import
+                </button>
 
-        <button type="button" data-duration="eighth">
-            ♪
-        </button>
+                <input
+                    type="file"
+                    id="importProjectFile"
+                    accept=".json,application/json"
+                    hidden
+                >
 
-    </div>
-
-
-    <div class="staff-area">
-
-        <div class="notation-signature">
-
-            <div class="clef">
-                𝄞
             </div>
 
-            <div class="time-signature">
-                <span>4</span>
-                <span>4</span>
+            <!-- NOTATION TOOLBAR -->
+            <div class="editor-toolbar">
+
+                <button type="button" id="trebleClef">
+                    Treble Clef
+                </button>
+
+                <button type="button" id="timeSignature">
+                    4/4
+                </button>
+
+                <button
+                    type="button"
+                    data-duration="whole"
+                    aria-label="Whole note"
+                >
+                    𝅝
+                </button>
+
+                <button
+                    type="button"
+                    data-duration="half"
+                    aria-label="Half note"
+                >
+                    𝅗𝅥
+                </button>
+
+                <button
+                    type="button"
+                    data-duration="quarter"
+                    aria-label="Quarter note"
+                >
+                    ♩
+                </button>
+
+                <button
+                    type="button"
+                    data-duration="eighth"
+                    aria-label="Eighth note"
+                >
+                    ♪
+                </button>
+
             </div>
 
-        </div>
+            <!-- STATUS -->
+            <div
+                class="project-status"
+                id="projectStatus"
+                role="status"
+                aria-live="polite"
+            >
+                Untitled composition
+            </div>
 
+            <!-- MUSIC STAFF -->
+            <div class="staff-area">
 
-        <div class="staff">
+                <div class="notation-signature">
 
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
+                    <div class="clef">𝄞</div>
 
-            <div class="barline"></div>
+                    <div class="time-signature">
+                        <span>4</span>
+                        <span>4</span>
+                    </div>
 
-        </div>
+                </div>
 
-    </div>
+                <div class="staff">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
 
-</section>
+                    <div class="barline"></div>
+                </div>
+
+            </div>
 
         </section>
 
     </main>
 
-
     <footer>
-
-        <p>
-            LARAS — Music Technology
-        </p>
-
+        <p>LARAS — Music Technology</p>
     </footer>
 
     <script src="notation.js"></script>
-</body>
 
+</body>
 </html>
