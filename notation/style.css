@@ -1,90 +1,178 @@
 
-/* ========================================
-   LARAS — DARK MUSIC STUDIO
-======================================== */
+/* =========================================================
+   LARAS — OBSIDIAN ATELIER
+   Signature design system
+   Warm charcoal · Archive ivory · Oxidized copper
+========================================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+/* =========================
+   01. DESIGN TOKENS
+========================= */
 
 :root {
-    --bg: #08090b;
-    --surface: #121316;
-    --surface-raised: #19191e;
-    --surface-hover: #242126;
+    color-scheme: dark;
 
-    --text: #e8e5e5;
-    --muted: #aaa1a3;
+    --bg: #11100f;
+    --surface: #191715;
+    --surface-raised: #211e1b;
+    --surface-hover: #2b2622;
+    --surface-active: #342a25;
 
-    --border: rgba(185, 106, 118, 0.20);
-    --accent: #873e4a;
-    --accent-hover: #b96a76;
-    --accent-soft: rgba(135, 62, 74, 0.16);
-    --accent-border: rgba(185, 106, 118, 0.45);
+    --text: #eee8df;
+    --muted: #a59b90;
+    --muted-dark: #746b62;
 
-    --staff-line: #81777c;
-    --note-color: #e8b7be;
+    --accent: #c15b43;
+    --accent-hover: #d4745a;
+    --accent-soft: rgba(193, 91, 67, 0.13);
+    --accent-border: rgba(193, 91, 67, 0.42);
+
+    --paper: #eae2d3;
+    --paper-deep: #d9cbb6;
+    --ink: #282520;
+    --ink-muted: #786e62;
+
+    --staff-line: #a99c89;
+    --note-color: #282520;
+
+    --border: rgba(234, 226, 211, 0.10);
+    --border-strong: rgba(234, 226, 211, 0.18);
+
+    --success: #8ea58a;
+    --danger: #d87869;
+
+    --font-ui: 'DM Sans', sans-serif;
+    --font-display: 'Playfair Display', Georgia, serif;
+
+    --radius-sm: 6px;
+    --radius: 12px;
+    --radius-lg: 18px;
+
+    --shadow:
+        0 20px 60px rgba(0, 0, 0, 0.20);
+
+    --transition:
+        180ms ease;
+
+    --container: 1440px;
 }
 
+/* =========================
+   02. RESET & FOUNDATION
+========================= */
 
 * {
     box-sizing: border-box;
 }
 
 html {
-    min-width: 320px;
-    background: var(--bg);
+    min-height: 100%;
     scroll-behavior: smooth;
+    background: var(--bg);
 }
 
 body {
-    min-width: 320px;
+    min-height: 100vh;
     margin: 0;
     background:
         radial-gradient(
-            ellipse at 50% 0%,
-            rgba(135, 62, 74, 0.15),
-            transparent 48rem
+            ellipse at 50% -25%,
+            rgba(193, 91, 67, 0.075),
+            transparent 55%
         ),
         var(--bg);
     color: var(--text);
-    font-family: Arial, sans-serif;
-    line-height: 1.5;
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    font-family: var(--font-ui);
 }
 
 button,
-input {
-    font: inherit;
+input,
+select,
+textarea {
+    font-size: inherit;
 }
 
 button {
-    -webkit-tap-highlight-color: transparent;
+    color: inherit;
 }
 
 button:focus-visible,
-a:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
     outline: 2px solid var(--accent-hover);
     outline-offset: 3px;
 }
 
 a {
     color: inherit;
+    text-decoration: none;
 }
 
-/* ========================================
-   HEADER
-======================================== */
+button:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+}
+
+::selection {
+    color: #fff7ee;
+    background: var(--accent);
+}
+
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #51463e;
+    border: 2px solid var(--bg);
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+/* =========================
+   03. HEADER & BRAND
+========================= */
 
 .notation-header {
-    position: relative;
-    z-index: 10;
+    position: sticky;
+    z-index: 100;
+    top: 0;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: 24px;
 
-    padding: 18px 5%;
+    min-height: 76px;
+    padding: 16px clamp(20px, 4vw, 64px);
 
+    background: rgba(17, 16, 15, 0.92);
     border-bottom: 1px solid var(--border);
-    background: rgba(9, 11, 20, 0.84);
+
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
 }
@@ -92,664 +180,779 @@ a {
 .notation-brand {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-
+    gap: 13px;
     min-width: 0;
-    font-size: 0.85rem;
 }
 
-.notation-brand a {
+.notation-brand::before {
+    content: '♪';
+    display: grid;
+    place-items: center;
+
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+
+    color: var(--accent-hover);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-radius: 50%;
+
+    font-family: var(--font-display);
+    font-size: 24px;
+}
+
+.notation-brand h1,
+.notation-brand h2,
+.notation-brand strong {
+    margin: 0;
     color: var(--text);
-    text-decoration: none;
-    font-weight: 800;
-    letter-spacing: 0.16em;
+    font-family: var(--font-display);
+    font-size: 25px;
+    font-weight: 600;
+    letter-spacing: -0.8px;
+    line-height: 1.1;
 }
 
-.notation-brand span:nth-child(2) {
-    color: var(--accent);
-}
-
-.notation-brand span:last-child {
+.notation-brand p,
+.notation-brand small {
+    display: block;
+    margin-top: 5px;
     color: var(--muted);
-}
-
-.back-link {
-    flex: 0 0 auto;
-    color: var(--muted);
-    font-size: 0.85rem;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.back-link:hover {
-    color: var(--accent-hover);
-}
-
-/* ========================================
-   WORKSPACE
-======================================== */
-
-.notation-workspace {
-    width: min(1200px, calc(100% - 40px));
-    margin: 0 auto;
-    padding: 82px 0 90px;
-}
-
-.workspace-intro {
-    max-width: 950px;
-}
-
-.eyebrow {
-    margin: 0 0 16px;
-    color: var(--accent-hover);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.19em;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
     text-transform: uppercase;
 }
 
-.workspace-intro h1 {
-    max-width: 950px;
-    margin: 0;
-
-    font-size: clamp(2.8rem, 7vw, 6.2rem);
-    line-height: 0.99;
-    letter-spacing: -0.065em;
-    overflow-wrap: anywhere;
-}
-
-.workspace-intro p:last-child {
-    max-width: 570px;
-    margin-top: 24px;
-    color: var(--muted);
-    font-size: 1rem;
-    line-height: 1.8;
-}
-
-/* ========================================
-   EDITOR SHELL
-======================================== */
-
-.notation-editor {
-    width: 100%;
-    min-width: 0;
-    margin-top: 64px;
-
-    overflow: hidden;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    box-shadow: var(--shadow);
-}
-
-/* ========================================
-   PROJECT TOOLBAR
-======================================== */
-
-.project-toolbar,
-.editor-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding: 14px 16px;
-}
-
-.project-toolbar {
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-}
-
-.editor-toolbar {
-    border-bottom: 1px solid var(--border);
-    background: #111114;
-}
-
-.project-toolbar button,
-.editor-toolbar button {
+.back-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 9px;
 
-    flex: 0 0 auto;
-    min-height: 38px;
-    min-width: 40px;
+    min-height: 40px;
+    padding: 9px 14px;
 
-    padding: 8px 13px;
-
+    color: var(--muted);
+    background: transparent;
     border: 1px solid var(--border);
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
 
-    background: var(--surface-raised);
+    font-size: 12px;
+    font-weight: 500;
+
+    transition:
+        color var(--transition),
+        border-color var(--transition),
+        background var(--transition);
+}
+
+.back-link:hover {
     color: var(--text);
+    background: var(--surface);
+    border-color: var(--border-strong);
+}
 
-    font-size: 0.83rem;
+/* =========================
+   04. MAIN WORKSPACE
+========================= */
+
+.notation-workspace {
+    width: min(100% - 48px, var(--container));
+    margin: 0 auto;
+    padding: 42px 0 72px;
+}
+
+.workspace-intro {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.workspace-intro h1,
+.workspace-intro h2 {
+    margin: 8px 0 0;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4vw, 46px);
+    font-weight: 500;
+    letter-spacing: -1.4px;
+    line-height: 1.15;
+}
+
+.workspace-intro p {
+    max-width: 560px;
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+
+    color: var(--accent-hover);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.eyebrow::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+}
+
+/* =========================
+   05. EDITOR SHELL
+========================= */
+
+.notation-editor {
+    min-width: 0;
+    overflow: hidden;
+
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+
+    box-shadow: var(--shadow);
+}
+
+.project-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    min-height: 66px;
+    padding: 14px 20px;
+
+    background: #151412;
+    border-bottom: 1px solid var(--border);
+}
+
+.project-toolbar > div,
+.project-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.project-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.project-status::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--success);
+    border-radius: 50%;
+}
+
+.project-toolbar button,
+.project-toolbar label,
+.project-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    min-height: 36px;
+    padding: 8px 12px;
+
+    color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    font-size: 11px;
+    font-weight: 600;
     cursor: pointer;
 
     transition:
-        background 0.18s ease,
-        border-color 0.18s ease,
-        color 0.18s ease,
-        transform 0.18s ease;
+        background var(--transition),
+        border-color var(--transition),
+        color var(--transition);
 }
 
 .project-toolbar button:hover,
-.editor-toolbar button:hover {
-    border-color: var(--accent-border);
+.project-toolbar label:hover,
+.project-actions button:hover {
     background: var(--surface-hover);
+    border-color: var(--border-strong);
 }
 
-.project-toolbar button:active,
-.editor-toolbar button:active {
-    transform: translateY(1px);
-}
-
-.project-toolbar button:focus-visible,
-.editor-toolbar button:focus-visible {
-    outline: 2px solid var(--accent-hover);
-    outline-offset: 2px;
-}
-
-.editor-toolbar button[data-duration] {
-    font-size: 1.2rem;
-}
-
-.editor-toolbar button.active,
-.editor-toolbar button[data-duration].active {
-    border-color: var(--accent);
+.project-toolbar button.primary,
+.project-actions button.primary {
+    color: #fff4eb;
     background: var(--accent);
-    color: #ffffff;
-    box-shadow: 0 0 18px rgba(135, 62, 74, 0.20);
+    border-color: var(--accent);
 }
 
-/* ========================================
-   PROJECT STATUS
-======================================== */
-
-.project-status {
-    margin: 0;
-    padding: 11px 16px;
-
-    border-bottom: 1px solid var(--border);
-
-    background: #111114;
-    color: var(--muted);
-
-    font-size: 0.8rem;
-    overflow-wrap: anywhere;
+.project-toolbar button.primary:hover,
+.project-actions button.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
 }
 
-/* ========================================
-   MIDI IMPORTER
-======================================== */
-
-.midi-importer {
-    margin: 22px;
-    padding: 24px;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(139, 92, 246, 0.07),
-            transparent 65%
-        ),
-        #111114;
+.project-toolbar input[type="file"],
+.project-actions input[type="file"] {
+    display: none;
 }
 
-.midi-importer-heading {
-    margin-bottom: 22px;
-}
+/* =========================
+   06. EDITOR TOOLBAR
+========================= */
 
-.midi-importer-heading .eyebrow {
-    margin-bottom: 8px;
-}
-
-.midi-importer-heading h2 {
-    margin: 0 0 8px;
-    color: var(--text);
-    font-size: clamp(1.3rem, 3vw, 1.65rem);
-    line-height: 1.3;
-    letter-spacing: -0.025em;
-}
-
-.midi-importer-heading > p:last-child {
-    max-width: 550px;
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.92rem;
-    line-height: 1.7;
-}
-
-/* File picker */
-
-.midi-file-picker {
+.editor-toolbar {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 12px;
 
-    width: 100%;
-    min-height: 180px;
-    padding: 24px;
+    padding: 16px 20px;
 
-    border: 1px dashed rgba(167, 139, 250, 0.48);
-    border-radius: 10px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
 
-    background: rgba(139, 92, 246, 0.045);
-    text-align: center;
+.editor-toolbar button,
+.editor-toolbar select {
+    min-height: 38px;
+    padding: 8px 12px;
+
+    color: var(--muted);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
 
     transition:
-        background 0.2s ease,
-        border-color 0.2s ease;
+        color var(--transition),
+        background var(--transition),
+        border-color var(--transition);
 }
 
-.midi-file-picker:hover {
-    border-color: var(--accent-hover);
+.editor-toolbar button:hover,
+.editor-toolbar select:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+}
+
+.editor-toolbar button.active,
+.editor-toolbar button[aria-pressed="true"] {
+    color: var(--accent-hover);
     background: var(--accent-soft);
+    border-color: var(--accent-border);
 }
 
-.midi-file-picker:focus-within {
-    outline: 2px solid var(--accent-hover);
-    outline-offset: 3px;
+.editor-toolbar button:focus-visible {
+    outline-offset: 2px;
 }
 
-.midi-file-icon {
+.editor-toolbar .toolbar-group {
     display: flex;
     align-items: center;
-    justify-content: center;
-
-    width: 48px;
-    height: 48px;
-
-    border: 1px solid var(--accent-border);
-    border-radius: 12px;
-
-    background: var(--accent-soft);
-    color: var(--accent-hover);
-
-    font-size: 1.8rem;
-    line-height: 1;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
-.midi-file-picker-title {
-    color: var(--text);
-    font-size: 0.95rem;
+.editor-toolbar .toolbar-label {
+    margin-right: 4px;
+    color: var(--muted-dark);
+    font-size: 9px;
     font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
 }
 
-.midi-file-picker-description {
-    color: var(--muted);
-    font-size: 0.82rem;
+.editor-toolbar .toolbar-divider {
+    width: 1px;
+    height: 26px;
+    margin: 0 3px;
+    background: var(--border-strong);
 }
 
-/* Keep the native file control usable and contained */
-
-#midiFileInput {
-    display: block;
-    width: 100%;
-    max-width: 330px;
-    margin-top: 4px;
-
-    color: var(--muted);
-    font-size: 0.8rem;
+.editor-toolbar select {
+    max-width: 100%;
 }
 
-#midiFileInput::file-selector-button {
-    margin-right: 8px;
-    padding: 7px 10px;
+.editor-toolbar input[type="number"],
+.editor-toolbar input[type="text"] {
+    width: 74px;
+    min-height: 36px;
+    padding: 8px 10px;
 
-    border: 1px solid var(--accent-border);
-    border-radius: 6px;
-
-    background: var(--surface-raised);
     color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
 
-    font: inherit;
+/* =========================
+   07. MIDI IMPORTER
+========================= */
+
+.midi-importer {
+    margin: 20px;
+    padding: 22px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(193, 91, 67, 0.075),
+            transparent 70%
+        ),
+        #171513;
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.midi-importer h2,
+.midi-importer h3 {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.midi-importer p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.midi-importer button,
+.midi-importer label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-height: 40px;
+    padding: 10px 15px;
+
+    color: #fff4eb;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+
+    transition: background var(--transition);
+}
+
+.midi-importer button:hover,
+.midi-importer label:hover {
+    background: var(--accent-hover);
+}
+
+.midi-importer input[type="file"] {
+    max-width: 100%;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.midi-importer input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    padding: 8px 12px;
+
+    color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+
     cursor: pointer;
 }
 
-#midiFileInput::file-selector-button:hover {
-    background: var(--surface-hover);
-}
-
-/* Import status */
-
-.midi-import-status {
-    margin-top: 14px;
-    padding: 11px 13px;
-
-    border: 1px solid var(--border);
-    border-radius: 7px;
-
-    background: rgba(255, 255, 255, 0.02);
+#midiImportStatus {
+    margin-top: 12px;
     color: var(--muted);
-
-    font-size: 0.83rem;
-    line-height: 1.6;
-    overflow-wrap: anywhere;
+    font-size: 12px;
 }
 
-/* MIDI metadata */
+#midiImportStatus.success {
+    color: var(--success);
+}
+
+#midiImportStatus.error {
+    color: var(--danger);
+}
 
 .midi-analysis {
-    margin-top: 24px;
-    padding-top: 22px;
+    margin-top: 18px;
+    padding-top: 18px;
     border-top: 1px solid var(--border);
-}
-
-.midi-analysis h3 {
-    margin: 0 0 15px;
-    color: var(--text);
-    font-size: 1rem;
 }
 
 .midi-metadata {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-    margin: 0;
+    gap: 12px;
+    margin-top: 14px;
 }
 
 .midi-metadata > div {
     min-width: 0;
-    padding: 14px;
+    padding: 13px;
 
+    background: var(--surface-raised);
     border: 1px solid var(--border);
-    border-radius: 8px;
-
-    background: var(--surface);
+    border-radius: var(--radius-sm);
 }
 
-.midi-metadata dt {
-    margin-bottom: 7px;
+.midi-metadata span,
+.midi-metadata small {
+    display: block;
     color: var(--muted);
-    font-size: 0.77rem;
+    font-size: 10px;
 }
 
-.midi-metadata dd {
-    margin: 0;
-    color: var(--text);
-    font-size: 0.92rem;
-    font-weight: 600;
+.midi-metadata strong {
+    display: block;
+    margin-top: 5px;
     overflow-wrap: anywhere;
+
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 600;
 }
 
-.midi-analysis-note {
-    margin: 15px 0 0;
-    color: var(--muted);
-    font-size: 0.8rem;
-    line-height: 1.7;
-}
-
-/* ========================================
-   STAFF VIEWPORT
-======================================== */
+/* =========================
+   08. NOTATION CANVAS
+========================= */
 
 .staff-area {
     position: relative;
-
-    display: flex;
-    align-items: flex-start;
-    gap: 0;
-
-    width: 100%;
     min-width: 0;
-    min-height: 280px;
+    overflow: auto;
 
-    padding: 65px 24px 45px;
+    margin: 20px;
+    padding: 24px 18px;
 
-    overflow-x: auto;
-    overflow-y: hidden;
+    background: var(--paper);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: var(--radius);
 
-    background: #0b0b0e;
+    color: var(--ink);
 
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: #70414a #191518;
-}
-
-.staff-area::-webkit-scrollbar {
-    height: 8px;
+    scrollbar-color: #a99c89 #e1d7c7;
 }
 
 .staff-area::-webkit-scrollbar-track {
-    border-radius: 10px;
-    background: #191518;
+    background: #e1d7c7;
 }
 
 .staff-area::-webkit-scrollbar-thumb {
-    border: 2px solid #191518;
-    border-radius: 10px;
-    background: #70414a;
+    background: #a99c89;
+    border-color: #e1d7c7;
 }
 
-/* ========================================
-   CLEF AND TIME SIGNATURE
-======================================== */
-
 .notation-signature {
-    position: sticky;
-    left: 0;
-    z-index: 5;
-
-    flex: 0 0 76px;
-
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 7px;
+    gap: 16px;
 
-    height: 132px;
+    min-height: 64px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
 
-    background: #0b0b0e;
+    color: var(--ink);
+    border-bottom: 1px solid rgba(40, 37, 32, 0.16);
+}
+
+.notation-signature h2,
+.notation-signature h3 {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.notation-signature p,
+.notation-signature small {
+    display: block;
+    margin: 3px 0 0;
+    color: var(--ink-muted);
+    font-size: 10px;
 }
 
 .clef {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: var(--text);
-
-    font-family: "Segoe UI Symbol", "Noto Music", serif;
-    font-size: 64px;
+    color: var(--ink);
+    font-family: 'Noto Music', 'Segoe UI Symbol', serif;
+    font-size: 54px;
     line-height: 1;
 }
 
 .time-signature {
-    display: flex;
+    display: inline-flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 
-    color: var(--text);
-
-    font-family: Arial, sans-serif;
-    font-size: 22px;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 20px;
     font-weight: 700;
     line-height: 0.95;
 }
 
-/* ========================================
-   STAFF AND BARLINES
-======================================== */
+.time-signature span {
+    display: block;
+}
 
 .staff {
     position: relative;
+    min-width: 100%;
+    min-height: 130px;
 
-    flex: 0 0 auto;
-
-    width: 2000px;
-    min-width: 2000px;
-    height: 132px;
-
-    margin: 0;
-    padding: 0;
-    overflow: visible;
-
+    color: var(--ink);
     background: transparent;
-    isolation: isolate;
 }
 
 .staff-line {
     position: absolute;
-    left: 100px;
+    left: 0;
+    right: 0;
 
     height: 1px;
-    margin: 0;
-
     background: var(--staff-line);
-    opacity: 0.72;
-
+    opacity: 0.95;
     pointer-events: none;
-    z-index: 0;
 }
 
 .barline {
     position: absolute;
+    top: 0;
+    bottom: 0;
 
-    top: 22px;
-    bottom: 22px;
     width: 1px;
-
-    margin: 0;
-
-    background: var(--staff-line);
-    opacity: 0.82;
-
+    background: rgba(40, 37, 32, 0.68);
     pointer-events: none;
-    z-index: 1;
 }
 
-/* ========================================
-   NOTES
-======================================== */
+/* =========================
+   09. NOTES & RESTS
+========================= */
 
 .note {
     position: absolute;
-    z-index: 3;
 
     width: 14px;
     height: 10px;
 
-    border: 2px solid var(--note-color);
+    background: var(--note-color);
+    border: 1px solid rgba(40, 37, 32, 0.2);
     border-radius: 50%;
 
-    background: var(--note-color);
+    transform: rotate(-18deg);
+    transform-origin: center;
 
-    transform: translate(-50%, -50%);
     cursor: grab;
-
     user-select: none;
-    touch-action: none;
+    -webkit-user-select: none;
+
+    transition:
+        background var(--transition),
+        box-shadow var(--transition);
+}
+
+.note:hover {
+    background: #504038;
+    box-shadow: 0 0 0 4px rgba(193, 91, 67, 0.12);
 }
 
 .note:active {
     cursor: grabbing;
 }
 
-.note .stem {
-    position: absolute;
+.note.selected,
+.note.active,
+.note[aria-selected="true"] {
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(193, 91, 67, 0.18);
+}
 
+.stem {
+    position: absolute;
     right: -1px;
-    bottom: 4px;
+    bottom: 3px;
 
     width: 2px;
     height: 32px;
 
-    background: var(--note-color);
+    background: currentColor;
+    border-radius: 2px;
+
     pointer-events: none;
 }
 
-.note.half {
-    background: #0b0b0e;
+.note .stem {
+    color: var(--note-color);
 }
 
-.note.whole {
-    width: 17px;
-    height: 11px;
-
-    border-width: 2px;
-    background: #0b0b0e;
+.note.selected .stem,
+.note.active .stem {
+    color: var(--accent);
 }
 
-.note.eighth .flag {
+.flag {
     position: absolute;
-
     top: 0;
-    left: 0;
+    right: -1px;
 
-    width: 12px;
-    height: 10px;
+    width: 11px;
+    height: 14px;
 
-    border-top: 2px solid var(--note-color);
-    border-radius: 0 8px 0 0;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    border-radius: 0 0 9px 0;
 
+    transform: skewY(-25deg);
     pointer-events: none;
 }
-
-/* ========================================
-   RESTS
-======================================== */
 
 .rest {
     position: absolute;
-    z-index: 3;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 18px;
-    height: 28px;
-
-    color: var(--note-color);
-
-    font-family: "Segoe UI Symbol", "Noto Music", "Times New Roman", serif;
-    font-size: 30px;
+    color: var(--ink);
+    font-family: 'Noto Music', 'Segoe UI Symbol', serif;
+    font-size: 27px;
     line-height: 1;
 
-    transform: translate(-50%, -50%);
-
+    cursor: pointer;
     user-select: none;
-    pointer-events: none;
 }
 
-/* ========================================
-   FOOTER
-======================================== */
+.rest:hover {
+    color: var(--accent);
+}
+
+/* =========================
+   10. INPUTS & GENERAL UI
+========================= */
+
+input,
+select,
+textarea {
+    max-width: 100%;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+select,
+textarea {
+    color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--muted-dark);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: var(--accent);
+}
+
+input[type="range"] {
+    accent-color: var(--accent);
+}
+
+hr {
+    height: 1px;
+    background: var(--border);
+    border: 0;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* =========================
+   11. FOOTER
+========================= */
 
 footer {
-    padding: 28px 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
 
+    width: min(100% - 48px, var(--container));
+    margin: 0 auto;
+    padding: 22px 0 30px;
+
+    color: var(--muted-dark);
     border-top: 1px solid var(--border);
 
-    background: rgba(9, 11, 20, 0.7);
+    font-size: 10px;
+    letter-spacing: 0.3px;
+}
+
+footer a {
     color: var(--muted);
-
-    font-size: 0.8rem;
-    text-align: center;
+    transition: color var(--transition);
 }
 
-footer p {
-    margin: 0;
+footer a:hover {
+    color: var(--accent-hover);
 }
 
-/* ========================================
-   RESPONSIVE — TABLET
-======================================== */
+/* =========================
+   12. RESPONSIVE — TABLET
+========================= */
 
 @media (max-width: 900px) {
     .notation-workspace {
-        padding-top: 68px;
+        width: min(100% - 32px, var(--container));
+        padding-top: 30px;
+    }
+
+    .workspace-intro {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .editor-toolbar {
+        gap: 10px;
+        padding: 14px;
+    }
+
+    .project-toolbar {
+        padding: 12px 14px;
+    }
+
+    .staff-area {
+        margin: 14px;
+        padding: 20px 14px;
     }
 
     .midi-metadata {
@@ -757,203 +960,180 @@ footer p {
     }
 }
 
-/* ========================================
-   RESPONSIVE — MOBILE
-======================================== */
+/* =========================
+   13. RESPONSIVE — MOBILE
+========================= */
 
 @media (max-width: 600px) {
+    body {
+        font-size: 13px;
+    }
+
     .notation-header {
-        align-items: center;
+        min-height: 64px;
+        padding: 12px 16px;
         gap: 12px;
-        padding: 16px 5%;
     }
 
     .notation-brand {
-        gap: 8px;
-        font-size: 0.76rem;
+        gap: 9px;
+    }
+
+    .notation-brand::before {
+        width: 32px;
+        height: 32px;
+        flex-basis: 32px;
+        font-size: 20px;
+    }
+
+    .notation-brand h1,
+    .notation-brand h2,
+    .notation-brand strong {
+        font-size: 21px;
+    }
+
+    .notation-brand p,
+    .notation-brand small {
+        font-size: 8px;
+        letter-spacing: 1.3px;
     }
 
     .back-link {
-        font-size: 0.76rem;
+        min-height: 36px;
+        padding: 8px 10px;
+        font-size: 11px;
     }
 
     .notation-workspace {
-        width: calc(100% - 28px);
-        padding: 52px 0 60px;
+        width: calc(100% - 24px);
+        padding: 26px 0 42px;
     }
 
-    .eyebrow {
-        margin-bottom: 12px;
-        font-size: 0.68rem;
+    .workspace-intro {
+        margin-bottom: 20px;
     }
 
-    .workspace-intro h1 {
-        font-size: clamp(2.7rem, 12vw, 4.4rem);
-        line-height: 1.02;
+    .workspace-intro h1,
+    .workspace-intro h2 {
+        font-size: 32px;
+        letter-spacing: -0.8px;
     }
 
-    .workspace-intro p:last-child {
-        margin-top: 20px;
-        font-size: 0.92rem;
-        line-height: 1.75;
+    .workspace-intro p {
+        font-size: 12px;
     }
 
     .notation-editor {
-        margin-top: 40px;
-        border-radius: 10px;
+        border-radius: 13px;
     }
 
-    .project-toolbar,
-    .editor-toolbar {
-        gap: 7px;
-        padding: 10px;
+    .project-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+        padding: 13px;
+    }
+
+    .project-toolbar > div,
+    .project-actions {
+        width: 100%;
     }
 
     .project-toolbar button,
-    .editor-toolbar button {
+    .project-toolbar label,
+    .project-actions button {
         min-height: 36px;
-        padding: 7px 10px;
-        font-size: 0.77rem;
+        padding: 8px 10px;
+        font-size: 10px;
     }
 
-    .editor-toolbar button[data-duration] {
-        min-width: 38px;
-        font-size: 1.1rem;
+    .editor-toolbar {
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px;
     }
 
-    .project-status {
-        padding: 10px 12px;
-        font-size: 0.76rem;
+    .editor-toolbar .toolbar-group {
+        gap: 6px;
+    }
+
+    .editor-toolbar button,
+    .editor-toolbar select {
+        min-height: 36px;
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    .editor-toolbar .toolbar-divider {
+        display: none;
     }
 
     .midi-importer {
         margin: 12px;
-        padding: 16px;
-        border-radius: 9px;
+        padding: 15px;
     }
 
-    .midi-importer-heading {
-        margin-bottom: 17px;
-    }
-
-    .midi-importer-heading h2 {
-        font-size: 1.3rem;
-    }
-
-    .midi-importer-heading > p:last-child {
-        font-size: 0.85rem;
-    }
-
-    .midi-file-picker {
-        min-height: 160px;
-        gap: 9px;
-        padding: 16px 10px;
-    }
-
-    .midi-file-picker-title {
-        font-size: 0.88rem;
-    }
-
-    .midi-file-picker-description {
-        font-size: 0.76rem;
-        line-height: 1.5;
-    }
-
-    #midiFileInput {
-        max-width: 100%;
-        font-size: 0.73rem;
-    }
-
-    #midiFileInput::file-selector-button {
-        margin-right: 4px;
-        padding: 6px 7px;
-        font-size: 0.73rem;
+    .midi-importer h2,
+    .midi-importer h3 {
+        font-size: 18px;
     }
 
     .midi-metadata {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
     }
 
     .midi-metadata > div {
-        padding: 11px;
+        padding: 10px;
     }
 
-    .midi-metadata dt {
-        font-size: 0.72rem;
-    }
-
-    .midi-metadata dd {
-        font-size: 0.84rem;
+    .midi-metadata strong {
+        font-size: 14px;
     }
 
     .staff-area {
-        min-height: 245px;
-        padding: 48px 12px 35px;
+        margin: 10px;
+        padding: 18px 12px;
+        border-radius: 8px;
     }
 
     .notation-signature {
-        flex-basis: 64px;
-        gap: 4px;
-        height: 120px;
+        gap: 10px;
+        min-height: 56px;
+        margin-bottom: 16px;
     }
 
-    .clef {
-        font-size: 54px;
-    }
-
-    .time-signature {
+    .notation-signature h2,
+    .notation-signature h3 {
         font-size: 19px;
     }
 
-    .staff {
-        height: 120px;
+    .clef {
+        font-size: 46px;
+    }
+
+    .time-signature {
+        font-size: 18px;
     }
 
     footer {
-        padding: 24px 5%;
+        width: calc(100% - 32px);
+        padding: 18px 0 24px;
+        font-size: 10px;
     }
 }
 
-/* ========================================
-   RESPONSIVE — SMALL MOBILE
-======================================== */
-
-@media (max-width: 360px) {
-    .notation-brand {
-        gap: 6px;
-        font-size: 0.7rem;
-    }
-
-    .back-link {
-        font-size: 0.7rem;
-    }
-
-    .midi-metadata {
-        grid-template-columns: 1fr;
-    }
-
-    .project-toolbar,
-    .editor-toolbar {
-        gap: 6px;
-        padding: 8px;
-    }
-
-    .project-toolbar button,
-    .editor-toolbar button {
-        padding: 7px 8px;
-        font-size: 0.73rem;
-    }
-}
+/* =========================
+   14. REDUCED MOTION
+========================= */
 
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
         scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
-
-
