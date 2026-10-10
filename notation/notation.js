@@ -244,6 +244,48 @@ let dragOffsetY = 0;
 let hasDragged = false;
 let suppressClickUntil = 0;
 
+ // =========================
+// REFLOW NOTES
+// =========================
+
+function reflowNotes() {
+
+    measures.forEach(measure => {
+
+        const measureNotes =
+            notes.filter(
+                note =>
+                    note.measure === measure.number
+            );
+
+        let beatPosition = 0;
+
+        measureNotes.forEach(note => {
+
+            const usableWidth =
+                (measure.endX - measure.startX) - 100;
+
+            const beatWidth =
+                usableWidth / timeSignature.beats;
+
+            const x =
+                measure.startX +
+                50 +
+                (beatPosition * beatWidth);
+
+            // Update data
+            note.x = x;
+            note.beatPosition = beatPosition;
+
+            // Update visual
+            note.element.style.left =
+                `${x}px`;
+
+            beatPosition += note.beats;
+        });
+    });
+}
+
 // =========================
 // CLICK STAFF
 // =========================
@@ -330,47 +372,7 @@ if (usedBeats + noteBeats > timeSignature.beats) {
             ((3 - step) % 7 + 7) % 7
         ];
 
-    // =========================
-// REFLOW NOTES
-// =========================
-
-function reflowNotes() {
-
-    measures.forEach(measure => {
-
-        const measureNotes =
-            notes.filter(
-                note =>
-                    note.measure === measure.number
-            );
-
-        let beatPosition = 0;
-
-        measureNotes.forEach(note => {
-
-            const usableWidth =
-                (measure.endX - measure.startX) - 100;
-
-            const beatWidth =
-                usableWidth / timeSignature.beats;
-
-            const x =
-                measure.startX +
-                50 +
-                (beatPosition * beatWidth);
-
-            // Update data
-            note.x = x;
-            note.beatPosition = beatPosition;
-
-            // Update visual
-            note.element.style.left =
-                `${x}px`;
-
-            beatPosition += note.beats;
-        });
-    });
-}
+   
 
     // =========================
     // CREATE NOTE
