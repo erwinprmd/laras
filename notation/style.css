@@ -65,4 +65,971 @@ body {
     min-height: 100vh;
     margin: 0;
     color: var(--text);
-    background
+    background:
+        radial-gradient(ellipse at 50% -25%, rgba(193, 91, 67, .075), transparent 55%),
+        var(--bg);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    color: inherit;
+}
+
+button:disabled {
+    opacity: .42;
+    cursor: not-allowed;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--accent-hover);
+    outline-offset: 3px;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+::selection {
+    color: #fff7ee;
+    background: var(--accent);
+}
+
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #51463e;
+    border: 2px solid var(--bg);
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* 03. HEADER */
+
+.notation-header {
+    position: sticky;
+    z-index: 100;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 76px;
+    padding: 16px clamp(20px, 4vw, 64px);
+    background: rgba(17, 16, 15, .92);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.notation-brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+
+.notation-brand::before {
+    content: '♪';
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    color: var(--accent-hover);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-radius: 50%;
+    font-family: var(--font-display);
+    font-size: 24px;
+}
+
+.notation-brand h1,
+.notation-brand h2,
+.notation-brand strong {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 25px;
+    font-weight: 600;
+    letter-spacing: -.8px;
+    line-height: 1.1;
+}
+
+.notation-brand p,
+.notation-brand small {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 40px;
+    padding: 9px 14px;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    transition: color var(--transition), background var(--transition), border-color var(--transition);
+}
+
+.back-link:hover {
+    color: var(--text);
+    background: var(--surface);
+    border-color: var(--border-strong);
+}
+
+/* 04. WORKSPACE */
+
+.notation-workspace {
+    width: min(100% - 48px, var(--container));
+    margin: 0 auto;
+    padding: 42px 0 72px;
+}
+
+.workspace-intro {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.workspace-intro h1,
+.workspace-intro h2 {
+    margin: 8px 0 0;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4vw, 46px);
+    font-weight: 500;
+    letter-spacing: -1.4px;
+    line-height: 1.15;
+}
+
+.workspace-intro p {
+    max-width: 560px;
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--accent-hover);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.eyebrow::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+}
+
+/* 05. EDITOR CONTAINER */
+
+.notation-editor {
+    min-width: 0;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+}
+
+/* 06. PROJECT ACTIONS */
+
+.project-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    min-height: 66px;
+    padding: 14px 20px;
+    background: #151412;
+    border-bottom: 1px solid var(--border);
+}
+
+.project-toolbar > div,
+.project-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.project-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.project-status::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    flex: 0 0 6px;
+    background: var(--success);
+    border-radius: 50%;
+}
+
+.project-toolbar button,
+.project-toolbar label,
+.project-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 8px 13px;
+    color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.project-toolbar button:hover,
+.project-toolbar label:hover,
+.project-actions button:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+}
+
+.project-toolbar button.primary,
+.project-actions button.primary {
+    color: #fff4eb;
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.project-toolbar button.primary:hover,
+.project-actions button.primary:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.project-toolbar input[type="file"],
+.project-actions input[type="file"] {
+    display: none;
+}
+
+/* 07. NOTATION TOOLBAR */
+
+.editor-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+}
+
+.editor-toolbar button,
+.editor-toolbar select {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    min-height: 42px;
+    padding: 8px 13px;
+    color: var(--muted);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color var(--transition), background var(--transition), border-color var(--transition), transform var(--transition);
+}
+
+.editor-toolbar button:hover,
+.editor-toolbar select:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+}
+
+.editor-toolbar button:active {
+    transform: translateY(1px);
+}
+
+.editor-toolbar button.active,
+.editor-toolbar button[aria-pressed="true"] {
+    color: var(--accent-hover);
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
+    box-shadow: inset 0 0 0 1px rgba(193, 91, 67, .08);
+}
+
+.editor-toolbar .toolbar-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.editor-toolbar .toolbar-label {
+    margin-right: 4px;
+    color: var(--muted-dark);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.editor-toolbar .toolbar-divider {
+    width: 1px;
+    height: 28px;
+    margin: 0 5px;
+    background: var(--border-strong);
+}
+
+.editor-toolbar select {
+    max-width: 100%;
+}
+
+.editor-toolbar input[type="number"],
+.editor-toolbar input[type="text"] {
+    width: 74px;
+    min-height: 38px;
+    padding: 8px 10px;
+    color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+/* 08. MIDI IMPORT */
+
+.midi-importer {
+    margin: 20px;
+    padding: 22px;
+    background:
+        linear-gradient(135deg, rgba(193, 91, 67, .075), transparent 70%),
+        #171513;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.midi-importer h2,
+.midi-importer h3 {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.midi-importer p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.midi-importer button,
+.midi-importer label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 10px 15px;
+    color: #fff4eb;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition);
+}
+
+.midi-importer button:hover,
+.midi-importer label:hover {
+    background: var(--accent-hover);
+}
+
+.midi-importer input[type="file"] {
+    max-width: 100%;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.midi-importer input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    padding: 8px 12px;
+    color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+#midiImportStatus {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+#midiImportStatus.success {
+    color: var(--success);
+}
+
+#midiImportStatus.error {
+    color: var(--danger);
+}
+
+.midi-analysis {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+}
+
+.midi-metadata {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.midi-metadata > div {
+    min-width: 0;
+    padding: 13px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.midi-metadata span,
+.midi-metadata small {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.midi-metadata strong {
+    display: block;
+    margin-top: 5px;
+    overflow-wrap: anywhere;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* 09. SCORE PAPER */
+
+.staff-area {
+    position: relative;
+    min-width: 0;
+    max-width: 100%;
+    overflow: auto;
+    margin: 20px;
+    padding: 22px 18px 28px;
+    color: var(--ink);
+    background:
+        linear-gradient(rgba(255, 255, 255, .12), rgba(255, 255, 255, 0)),
+        var(--paper);
+    border: 1px solid rgba(0, 0, 0, .12);
+    border-radius: var(--radius);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+    scrollbar-color: #a99c89 #e1d7c7;
+    -webkit-overflow-scrolling: touch;
+}
+
+.staff-area::-webkit-scrollbar-track {
+    background: #e1d7c7;
+}
+
+.staff-area::-webkit-scrollbar-thumb {
+    background: #a99c89;
+    border-color: #e1d7c7;
+}
+
+.notation-signature {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 58px;
+    margin: 0 0 14px;
+    padding: 0 0 14px;
+    color: var(--ink);
+    border-bottom: 1px solid rgba(40, 37, 32, .16);
+}
+
+.notation-signature h2,
+.notation-signature h3 {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.notation-signature p,
+.notation-signature small {
+    display: block;
+    margin: 3px 0 0;
+    color: var(--ink-muted);
+    font-size: 10px;
+}
+
+.clef {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    color: var(--ink);
+    font-family: 'Noto Music', 'Segoe UI Symbol', serif;
+    font-size: 54px;
+    line-height: 1;
+}
+
+.time-signature {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: .95;
+}
+
+.time-signature span {
+    display: block;
+}
+
+.staff {
+    position: relative;
+    min-width: 100%;
+    min-height: 130px;
+    color: var(--ink);
+    background: transparent;
+    isolation: isolate;
+}
+
+.staff-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--staff-line);
+    opacity: .95;
+    pointer-events: none;
+}
+
+.barline {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(40, 37, 32, .68);
+    pointer-events: none;
+}
+
+/* 10. NOTES */
+
+.note {
+    position: absolute;
+    z-index: 2;
+    width: 14px;
+    height: 10px;
+    background: var(--note-color);
+    border: 1px solid rgba(40, 37, 32, .2);
+    border-radius: 50%;
+    transform: rotate(-18deg);
+    transform-origin: center;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    transition: background var(--transition), box-shadow var(--transition);
+}
+
+.note:hover {
+    background: #504038;
+    box-shadow: 0 0 0 4px rgba(193, 91, 67, .12);
+}
+
+.note:active {
+    cursor: grabbing;
+}
+
+.note.selected,
+.note.active,
+.note[aria-selected="true"] {
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(193, 91, 67, .18);
+}
+
+.stem {
+    position: absolute;
+    right: -1px;
+    bottom: 3px;
+    width: 2px;
+    height: 32px;
+    background: currentColor;
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+.note .stem {
+    color: var(--note-color);
+}
+
+.note.selected .stem,
+.note.active .stem {
+    color: var(--accent);
+}
+
+.flag {
+    position: absolute;
+    top: 0;
+    right: -1px;
+    width: 11px;
+    height: 14px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    border-radius: 0 0 9px 0;
+    transform: skewY(-25deg);
+    pointer-events: none;
+}
+
+.rest {
+    position: absolute;
+    z-index: 2;
+    color: var(--ink);
+    font-family: 'Noto Music', 'Segoe UI Symbol', serif;
+    font-size: 27px;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+}
+
+.rest:hover {
+    color: var(--accent);
+}
+
+/* 11. GENERAL INPUTS */
+
+input,
+select,
+textarea {
+    max-width: 100%;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+select,
+textarea {
+    color: var(--text);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--muted-dark);
+}
+
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"] {
+    accent-color: var(--accent);
+}
+
+hr {
+    height: 1px;
+    background: var(--border);
+    border: 0;
+}
+
+/* 12. FOOTER */
+
+footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    width: min(100% - 48px, var(--container));
+    margin: 0 auto;
+    padding: 22px 0 30px;
+    color: var(--muted-dark);
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    letter-spacing: .3px;
+}
+
+footer a {
+    color: var(--muted);
+    transition: color var(--transition);
+}
+
+footer a:hover {
+    color: var(--accent-hover);
+}
+
+/* 13. TABLET */
+
+@media (max-width: 900px) {
+    .notation-workspace {
+        width: min(100% - 32px, var(--container));
+        padding-top: 30px;
+    }
+
+    .workspace-intro {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .editor-toolbar {
+        gap: 9px;
+        padding: 14px;
+    }
+
+    .project-toolbar {
+        padding: 12px 14px;
+    }
+
+    .staff-area {
+        margin: 14px;
+        padding: 20px 14px;
+    }
+
+    .midi-metadata {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* 14. MOBILE */
+
+@media (max-width: 600px) {
+    body {
+        font-size: 13px;
+    }
+
+    .notation-header {
+        min-height: 64px;
+        padding: 12px 16px;
+        gap: 12px;
+    }
+
+    .notation-brand {
+        gap: 9px;
+    }
+
+    .notation-brand::before {
+        width: 32px;
+        height: 32px;
+        flex-basis: 32px;
+        font-size: 20px;
+    }
+
+    .notation-brand h1,
+    .notation-brand h2,
+    .notation-brand strong {
+        font-size: 21px;
+    }
+
+    .notation-brand p,
+    .notation-brand small {
+        font-size: 8px;
+        letter-spacing: 1.3px;
+    }
+
+    .back-link {
+        min-height: 36px;
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    .notation-workspace {
+        width: calc(100% - 24px);
+        padding: 26px 0 42px;
+    }
+
+    .workspace-intro {
+        margin-bottom: 20px;
+    }
+
+    .workspace-intro h1,
+    .workspace-intro h2 {
+        font-size: 32px;
+        letter-spacing: -.8px;
+    }
+
+    .workspace-intro p {
+        font-size: 12px;
+    }
+
+    .notation-editor {
+        border-radius: 13px;
+    }
+
+    .project-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+        padding: 13px;
+    }
+
+    .project-toolbar > div,
+    .project-actions {
+        width: 100%;
+    }
+
+    .project-toolbar button,
+    .project-toolbar label,
+    .project-actions button {
+        min-height: 36px;
+        padding: 8px 10px;
+        font-size: 10px;
+    }
+
+    .editor-toolbar {
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .editor-toolbar .toolbar-group {
+        gap: 6px;
+    }
+
+    .editor-toolbar button,
+    .editor-toolbar select {
+        min-width: 38px;
+        min-height: 38px;
+        padding: 7px 10px;
+        font-size: 11px;
+    }
+
+    .editor-toolbar .toolbar-divider {
+        display: none;
+    }
+
+    .midi-importer {
+        margin: 12px;
+        padding: 15px;
+    }
+
+    .midi-importer h2,
+    .midi-importer h3 {
+        font-size: 18px;
+    }
+
+    .midi-metadata {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .midi-metadata > div {
+        padding: 10px;
+    }
+
+    .midi-metadata strong {
+        font-size: 14px;
+    }
+
+    .staff-area {
+        margin: 10px;
+        padding: 16px 12px 22px;
+        border-radius: 8px;
+    }
+
+    .notation-signature {
+        gap: 10px;
+        min-height: 52px;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+    }
+
+    .notation-signature h2,
+    .notation-signature h3 {
+        font-size: 19px;
+    }
+
+    .clef {
+        min-width: 36px;
+        font-size: 46px;
+    }
+
+    .time-signature {
+        font-size: 18px;
+    }
+
+    footer {
+        width: calc(100% - 32px);
+        padding: 18px 0 24px;
+        font-size: 10px;
+    }
+}
+
+/* 15. ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
