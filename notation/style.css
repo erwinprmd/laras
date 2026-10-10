@@ -569,86 +569,6 @@ a {
     font-weight: 600;
 }
 
-/* =========================================================
-   LARAS — SCORE HEADER ALIGNMENT
-========================================================= */
-
-.notation-signature {
-    display: flex;
-    align-items: stretch;
-    gap: 14px;
-
-    min-height: 130px;
-    margin: 0;
-    padding: 0;
-
-    border: 0;
-}
-
-/* Clef and time signature share the staff coordinate height */
-.notation-signature .clef,
-.notation-signature .time-signature {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    height: 130px;
-    margin: 0;
-    padding: 0;
-
-    color: var(--ink);
-}
-
-.notation-signature .clef {
-    width: 54px;
-    min-width: 54px;
-
-    font-family: 'Noto Music', 'Segoe UI Symbol', serif;
-    font-size: 76px;
-    line-height: 1;
-}
-
-.notation-signature .time-signature {
-    min-width: 34px;
-
-    flex-direction: column;
-    gap: 2px;
-
-    font-family: var(--font-display);
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.notation-signature .time-signature span {
-    display: block;
-    line-height: 1;
-}
-
-@media (max-width: 600px) {
-    .notation-signature {
-        gap: 10px;
-        min-height: 130px;
-    }
-
-    .notation-signature .clef,
-    .notation-signature .time-signature {
-        height: 130px;
-    }
-
-    .notation-signature .clef {
-        width: 44px;
-        min-width: 44px;
-        font-size: 64px;
-    }
-
-    .notation-signature .time-signature {
-        min-width: 30px;
-        font-size: 21px;
-    }
-}
-
 /* 09. SCORE PAPER */
 
 .staff-area {
@@ -1113,3 +1033,138 @@ footer a:hover {
         transition-duration: .01ms !important;
     }
 }
+
+
+/* =========================================================
+   LARAS — STAFF ALIGNMENT PATCH
+   Menyatukan tinggi visual clef, time signature, dan staff
+========================================================= */
+
+/* Area kertas notasi */
+.staff-area {
+    position: relative;
+    overflow: auto;
+    isolation: isolate;
+}
+
+/*
+   Header notasi dibuat setinggi area staff.
+   Aturan ini menghilangkan garis pembatas dan jarak
+   vertikal berlebih dari style sebelumnya.
+*/
+.staff-area .notation-signature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-height: 130px;
+    height: 130px;
+
+    margin: 0;
+    padding: 0;
+
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+}
+
+/* Kunci musik */
+.staff-area .notation-signature .clef {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 54px;
+    min-width: 54px;
+    height: 130px;
+
+    margin: 0;
+    padding: 0;
+
+    color: var(--ink);
+    font-family: 'Noto Music', 'Segoe UI Symbol', serif;
+    font-size: 68px;
+    line-height: 1;
+}
+
+/* Angka tanda birama */
+.staff-area .notation-signature .time-signature {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+
+    min-width: 34px;
+    height: 130px;
+
+    margin: 0;
+    padding: 0;
+
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.staff-area .notation-signature .time-signature span {
+    display: block;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+}
+
+/* Area lima garis paranada */
+.staff-area .staff {
+    position: relative;
+    min-width: 100%;
+    min-height: 130px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    isolation: isolate;
+}
+
+/* Lima garis paranada */
+.staff-area .staff .staff-line {
+    position: absolute;
+    height: 1px;
+    pointer-events: none;
+}
+
+/* Garis birama */
+.staff-area .staff .barline {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    pointer-events: none;
+}
+
+/* Tampilan tablet dan HP */
+@media (max-width: 600px) {
+    .staff-area .notation-signature {
+        gap: 9px;
+        min-height: 130px;
+        height: 130px;
+    }
+
+    .staff-area .notation-signature .clef {
+        width: 44px;
+        min-width: 44px;
+        height: 130px;
+        font-size: 60px;
+    }
+
+    .staff-area .notation-signature .time-signature {
+        min-width: 30px;
+        height: 130px;
+        font-size: 21px;
+    }
+
+    .staff-area .staff {
+        min-height: 130px;
+    }
+}
+
