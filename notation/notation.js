@@ -1292,6 +1292,11 @@ function exportProject() {
 // IMPORT PROJECT FROM JSON
 // ========================================
 
+
+ // ========================================
+ // IMPORT PROJECT FROM JSON
+ // ========================================
+
 function importProject() {
     importProjectFile?.click();
 }
@@ -1308,9 +1313,9 @@ if (importProjectFile) {
                 const text = await file.text();
                 const data = JSON.parse(text);
 
-                // Validate before asking to replace the
-                // current composition.
-                const project = normalizeProject(data);
+                // Validate the original file data first.
+                // Keep the original format for loadProjectData().
+                normalizeProject(data);
 
                 if (
                     notes.length > 0 &&
@@ -1321,7 +1326,18 @@ if (importProjectFile) {
                     return;
                 }
 
-                loadProjectData(project);
+                // Pass the original data, not the normalized result.
+                // loadProjectData() performs its own validation.
+                loadProjectData(data);
+
+                updateProjectStatus(
+                    `Imported: ${currentProjectName}`
+                );
+
+                console.log(
+                    "Project imported successfully:",
+                    currentProjectName
+                );
             } catch (error) {
                 console.error("Import failed:", error);
 
@@ -1334,6 +1350,7 @@ if (importProjectFile) {
         }
     );
 }
+
 
 // ========================================
 // CONNECT PROJECT BUTTONS
