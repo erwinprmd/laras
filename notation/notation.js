@@ -515,3 +515,416 @@ updateDurationButtons();
 console.log("LARAS notation engine initialized.");
 console.log("Time Signature:", timeSignature);
 console.log("Current Measure:", getCurrentMeasure());
+
+
+ 
+// =========================
+// LARAS PROJECT MANAGEMENT
+// =========================
+
+const PROJECT_STORAGE_KEY = "laras_saved_compositions_v1";
+
+let currentProjectName = "Untitled composition";
+
+const projectStatus = document.getElementById("projectStatus");
+const newProjectButton = document.getElementById("newProject");
+const saveProjectButton = document.getElementById("saveProject");
+const openProjectButton = document.getElementById("openProject");
+const exportProjectButton = document.getElementById("exportProject");
+const importProjectButton = document.getElementById("importProject");
+const importProjectFile = document.getElementById("importProjectFile");
+
+function updateProjectStatus(message) {
+    if (projectStatus) {
+        projectStatus.textContent = message;
+    }
+}
+
+function getSavedProjects() {
+    try {
+        const stored = localStorage.getItem(PROJECT_STORAGE_KEY);
+        const projects = stored ? JSON.parse(stored) : {};
+
+        if (!projects || typeof projects !== "object" || Array.isArray(projects)) {
+            return {};
+        }
+
+        return projects;
+    } catch (error) {
+        console.error("Unable to read saved projects:", error);
+        return {};
+    }
+}
+
+function buildProjectData() {
+    return {
+        format: "LARAS",
+        version: 1,
+        name: currentProjectName,
+        timeSignature: { ...timeSignature },
+        measures: measures.map(measure => ({ ...measure })),
+        notes: notes.map(note => ({
+            x: note.x,
+            y: note.y,
+            pitch: note.pitch,
+            duration: note.duration,
+            beats: note.beats,
+            beatPosition: note.beatPosition,
+            measure: note.measure,
+            isRest: Boolean(note.isRest)
+        })),
+        updatedAt: new Date().toISOString()
+    };
+}
+
+function saveProject() {
+    const nameInput = currentProjectName === "Untitled composition"
+        ? prompt("Nama komposisi:", currentProjectName)
+        : prompt("Simpan komposisi sebagai:", currentProjectName);
+
+    if (nameInput === null) return;
+
+    const name = nameInput.trim();
+
+    if (!name) {
+        alert("Nama komposisi tidak boleh kosong.");
+        return;
+    }
+
+    try {
+        const projects = getSavedProjects();
+
+        currentProjectName = name;
+
+        const data = buildProjectData();
+        data.name = name;
+
+        projects[name] = data;
+
+        localStorage.setItem(
+            PROJECT_STORAGE_KEY,
+            JSON.stringify(projects)
+        );
+
+        updateProjectStatus(`Saved: ${name}`);
+
+        console.log("Project saved:", name);
+    } catch (error) {
+        console.error("Unable to save project:", error);
+        alert("Komposisi gagal disimpan. Penyimpanan browser mungkin penuh atau tidak tersedia.");
+    }
+}
+
+function clearComposition() {
+    notes.forEach(note => {
+        if (note.element) note.element.remove();
+    });
+
+    notes.splice(0, notes.length);
+
+    measures = [
+        { number: 1, startX: 100, endX: 1000 },
+        { number: 2, startX: 1000, endX: 1900 }
+    ];
+
+    renderMeasures();
+}
+
+function createNewProject() {
+    if (notes.length > 0) {
+        const confirmed = confirm(
+            "Mulai komposisi baru? Pastikan komposisi saat ini sudah disimpan."
+        );
+
+        if (!confirmed) return;
+    }
+
+    clearComposition();
+
+    currentProjectName = "Untitled composition";
+    updateProjectStatus(currentProjectName);
+
+    console.log("New composition created.");
+}
+
+function normalizeProject(data) {
+    if (!data || typeof data !== "object" || data.format !== "LARAS") {
+        throw new Error("File bukan komposisi LARAS yang valid.");
+    }
+
+    if (!Array.isArray(data.notes) || !Array.isArray(data.measures)) {
+        throw new Error("Data notasi atau birama tidak valid.");
+    }
+
+    const validDurations = Object.keys(durationBeats);
+
+    const normalizedNotes = data.notes.map(note => {
+        if (
+            !note ||
+            !validDurations.includes(note.duration) ||
+            !Number.isInteger(note.measure) ||
+            note.measure < 1 ||
+            !Number.isFinite(note.beatPosition) ||
+            note.beatPosition < 0 ||
+            !Number.isFinite(note.y)
+        ) {
+            throw new Error("Ditemukan data notasi yang tidak valid.");
+        }
+
+        const beats = durationBeats[note.duration];
+
+        if (note.isRest) {
+            return {
+                x: Number(note.x) || 0,
+                y: note.y,
+                pitch: null,
+                duration: note.duration,
+                beats,
+                beatPosition: note.beatPosition,
+                measure: note.measure,
+                isRest: true,
+                element: null
+            };
+        }
+
+        if (!pitchNames.includes(note.pitch)) {
+            throw new Error("Ditemukan pitch yang tidak valid.");
+        }
+
+        return {
+            x: Number(note.x) || 0,
+            y: note.y,
+            pitch: note.pitch,
+            duration: note.duration,
+            beats,
+            beatPosition: note.beatPosition,
+            measure: note.measure,
+            isRest: false,
+            element: null
+        };
+    });
+
+    const normalizedMeasures = data.measures
+        .filter(measure =>
+            measure &&
+            Number.isInteger(measure.number) &&
+            measure.number >= 1 &&
+            Number.isFinite(measure.startX) &&
+            Number.isFinite(measure.endX) &&
+            measure.endX > measure.startX
+        )
+        .map(measure => ({
+            number: measure.number,
+            startX: measure.startX,
+            endX: measure.endX
+        }))
+        .sort((a, b) => a.number - b.number);
+
+    if (normalizedMeasures.length === 0) {
+        throw new Error("File tidak memiliki data birama yang valid.");
+    }
+
+    const maxMeasureNumber = Math.max(
+        2,
+        ...normalizedNotes.map(note => note.measure),
+        ...normalizedMeasures.map(measure => measure.number)
+    );
+
+    const firstMeasure = normalizedMeasures[0];
+    const measureWidth = firstMeasure.endX - firstMeasure.startX;
+
+    const measureMap = new Map(
+        normalizedMeasures.map(measure => [measure.number, measure])
+    );
+
+    for (let number = 1; number <= maxMeasureNumber; number++) {
+        if (!measureMap.has(number)) {
+            const startX = firstMeasure.startX + (number - 1) * measureWidth;
+
+            measureMap.set(number, {
+                number,
+                startX,
+                endX: startX + measureWidth
+            });
+        }
+    }
+
+    return {
+        name: typeof data.name === "string" && data.name.trim()
+            ? data.name.trim()
+            : "Imported composition",
+        notes: normalizedNotes,
+        measures: Array.from(measureMap.values())
+            .sort((a, b) => a.number - b.number)
+    };
+}
+
+function loadProjectData(data) {
+    const normalized = normalizeProject(data);
+
+    // Validate the complete composition before replacing the current one.
+    const measureMap = new Map(
+        normalized.measures.map(measure => [measure.number, measure])
+    );
+
+    for (const note of normalized.notes) {
+        const measure = measureMap.get(note.measure);
+
+        if (!measure) {
+            throw new Error("Birama untuk salah satu not tidak ditemukan.");
+        }
+
+        if (note.beatPosition + note.beats > timeSignature.beats) {
+            throw new Error("Terdapat not yang melebihi kapasitas birama 4/4.");
+        }
+    }
+
+    clearComposition();
+
+    measures = normalized.measures;
+    currentProjectName = normalized.name;
+
+    normalized.notes.forEach(note => {
+        notes.push(note);
+        renderMusicElement(note);
+    });
+
+    renderMeasures();
+    reflowNotes();
+
+    updateProjectStatus(`Opened: ${currentProjectName}`);
+
+    console.log("Project opened:", currentProjectName);
+    console.log("Loaded notes:", notes.length);
+}
+
+function openProject() {
+    const projects = getSavedProjects();
+    const names = Object.keys(projects);
+
+    if (names.length === 0) {
+        alert("Belum ada komposisi tersimpan di browser ini.");
+        return;
+    }
+
+    const menu = names
+        .map((name, index) => `${index + 1}. ${name}`)
+        .join("\n");
+
+    const choice = prompt(
+        `Pilih nomor komposisi yang ingin dibuka:\n\n${menu}`
+    );
+
+    if (choice === null) return;
+
+    const index = Number(choice) - 1;
+
+    if (!Number.isInteger(index) || index < 0 || index >= names.length) {
+        alert("Pilihan tidak valid.");
+        return;
+    }
+
+    const name = names[index];
+
+    if (notes.length > 0) {
+        const confirmed = confirm(
+            "Membuka komposisi akan mengganti notasi saat ini. Lanjutkan?"
+        );
+
+        if (!confirmed) return;
+    }
+
+    try {
+        loadProjectData(projects[name]);
+    } catch (error) {
+        console.error("Unable to open project:", error);
+        alert(`Komposisi tidak dapat dibuka: ${error.message}`);
+    }
+}
+
+function exportProject() {
+    try {
+        const data = buildProjectData();
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], {
+            type: "application/json"
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        const safeName = currentProjectName
+            .replace(/[^a-z0-9_-]+/gi, "-")
+            .replace(/^-+|-+$/g, "") || "laras-composition";
+
+        link.href = url;
+        link.download = `${safeName}.json`;
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        URL.revokeObjectURL(url);
+
+        updateProjectStatus(`Exported: ${currentProjectName}`);
+    } catch (error) {
+        console.error("Export failed:", error);
+        alert("Komposisi gagal diekspor.");
+    }
+}
+
+function importProject() {
+    if (importProjectFile) {
+        importProjectFile.click();
+    }
+}
+
+if (newProjectButton) {
+    newProjectButton.addEventListener("click", createNewProject);
+}
+
+if (saveProjectButton) {
+    saveProjectButton.addEventListener("click", saveProject);
+}
+
+if (openProjectButton) {
+    openProjectButton.addEventListener("click", openProject);
+}
+
+if (exportProjectButton) {
+    exportProjectButton.addEventListener("click", exportProject);
+}
+
+if (importProjectButton) {
+    importProjectButton.addEventListener("click", importProject);
+}
+
+if (importProjectFile) {
+    importProjectFile.addEventListener("change", async event => {
+        const file = event.target.files?.[0];
+
+        if (!file) return;
+
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+
+            if (notes.length > 0) {
+                const confirmed = confirm(
+                    "Mengimpor file akan mengganti notasi saat ini. Lanjutkan?"
+                );
+
+                if (!confirmed) return;
+            }
+
+            loadProjectData(data);
+        } catch (error) {
+            console.error("Import failed:", error);
+            alert(`File gagal diimpor: ${error.message}`);
+        } finally {
+            event.target.value = "";
+        }
+    });
+}
+
+updateProjectStatus(currentProjectName);
