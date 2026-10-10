@@ -531,6 +531,7 @@ staff.addEventListener("dblclick", (event) => {
     noteElement.className = "rest";
     noteElement.removeAttribute("data-pitch");
     noteElement.replaceChildren();
+    noteElement.textContent = "𝄽";
 
     // Posisi tetap pada ketukan yang sama.
     noteElement.style.left =
