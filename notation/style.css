@@ -433,3 +433,190 @@ footer {
     }
 }
 
+
+/* ========================================
+   LARAS — NOTATION LAYOUT REFINEMENT
+======================================== */
+
+.notation-editor {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.staff-area {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 28px 24px 40px;
+    box-sizing: border-box;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.notation-signature {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    flex: 0 0 76px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 132px;
+    background: var(--bg, #f7f5f0);
+}
+
+.clef {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Segoe UI Symbol", "Noto Music", serif;
+    font-size: 64px;
+    line-height: 1;
+}
+
+.time-signature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: "DM Sans", sans-serif;
+    font-size: 23px;
+    font-weight: 600;
+    line-height: 0.95;
+}
+
+.staff {
+    position: relative;
+    flex: 0 0 auto;
+    height: 132px;
+    min-width: 900px;
+    margin: 0;
+    overflow: visible;
+    background: transparent;
+    isolation: isolate;
+}
+
+.staff-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--text, #1c211f);
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.barline {
+    position: absolute;
+    top: 22px;
+    bottom: 44px;
+    width: 1px;
+    background: var(--text, #1c211f);
+    opacity: 0.75;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.note,
+.rest {
+    position: absolute;
+    z-index: 2;
+}
+
+.note {
+    transform: translate(-50%, -50%);
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.note:active {
+    cursor: grabbing;
+}
+
+.note .stem {
+    pointer-events: none;
+}
+
+.note .flag {
+    pointer-events: none;
+}
+
+.rest {
+    transform: translate(-50%, -50%);
+    user-select: none;
+    cursor: default;
+}
+
+.editor-toolbar,
+.project-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-toolbar button,
+.project-toolbar button {
+    flex: 0 0 auto;
+}
+
+.editor-toolbar button.active {
+    border-color: var(--muted, #65735e);
+    background: var(--muted, #65735e);
+    color: #fff;
+}
+
+.project-status {
+    margin: 12px 0;
+    color: var(--muted, #65735e);
+    font-size: 13px;
+}
+
+@media (max-width: 640px) {
+    .staff-area {
+        padding: 24px 12px 32px;
+    }
+
+    .notation-signature {
+        flex-basis: 64px;
+        gap: 4px;
+        height: 120px;
+    }
+
+    .clef {
+        font-size: 54px;
+    }
+
+    .time-signature {
+        font-size: 19px;
+    }
+
+    .staff {
+        height: 120px;
+    }
+
+    .project-toolbar,
+    .editor-toolbar {
+        gap: 6px;
+    }
+
+    .project-toolbar button,
+    .editor-toolbar button {
+        min-height: 38px;
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+}
+
+
