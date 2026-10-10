@@ -503,6 +503,7 @@ function getNextBeatPosition(measureNumber) {
 // DELETE NOTE
 // =========================
 
+
 staff.addEventListener("dblclick", (event) => {
 
     const noteElement =
@@ -512,32 +513,38 @@ staff.addEventListener("dblclick", (event) => {
         return;
     }
 
-    // Cari data note
-    const noteIndex =
-        notes.findIndex(
+    const noteData =
+        notes.find(
             note => note.element === noteElement
         );
 
-    if (noteIndex === -1) {
+    if (!noteData) {
         return;
     }
 
-    const noteData =
-        notes[noteIndex];
+    // Tandai elemen sebagai rest.
+    // Durasi, beatPosition, measure, dan beats tetap.
+    noteData.isRest = true;
+    noteData.pitch = null;
 
-    // Hapus dari array
-    notes.splice(noteIndex, 1);
+    // Ubah tampilan elemen.
+    noteElement.className = "rest";
+    noteElement.removeAttribute("data-pitch");
+    noteElement.replaceChildren();
 
-    // Hapus dari staff
-    noteElement.remove();
+    // Posisi tetap pada ketukan yang sama.
+    noteElement.style.left =
+        `${noteData.x}px`;
 
-    // Rapikan kembali posisi note
-reflowNotes();
+    noteElement.style.top =
+        `${noteData.y}px`;
 
-    console.log(
-        "Note deleted:",
-        noteData
-    );
+    console.log("Note converted to rest:", {
+        duration: noteData.duration,
+        beats: noteData.beats,
+        beatPosition: noteData.beatPosition,
+        measure: noteData.measure
+    });
 
     console.log(
         `Measure ${noteData.measure} beats:`,
@@ -549,6 +556,7 @@ reflowNotes();
         getMeasureStatus(noteData.measure)
     );
 });
+
 
 // =========================
 // START DRAG
