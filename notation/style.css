@@ -319,3 +319,117 @@ footer {
 }
 
 }
+
+
+/* =========================
+   LARAS NOTATION EDITOR
+========================= */
+
+.staff {
+    position: relative;
+    min-width: 2000px;
+    min-height: 160px;
+    isolation: isolate;
+}
+
+.staff-line {
+    position: absolute;
+    left: 100px;
+    width: calc(100% - 100px);
+    height: 1px;
+    background: var(--text);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.barline {
+    position: absolute;
+    top: 22px;
+    height: 88px;
+    width: 1px;
+    background: var(--text);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.note {
+    position: absolute;
+    width: 14px;
+    height: 10px;
+    border: 2px solid var(--text);
+    border-radius: 50%;
+    background: var(--text);
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+}
+
+.note:active {
+    cursor: grabbing;
+}
+
+.note .stem {
+    position: absolute;
+    width: 2px;
+    height: 32px;
+    background: var(--text);
+    right: -1px;
+    bottom: 4px;
+    pointer-events: none;
+}
+
+.note.half {
+    background: var(--bg);
+}
+
+.note.eighth .flag {
+    position: absolute;
+    width: 12px;
+    height: 10px;
+    border-top: 2px solid var(--text);
+    border-radius: 0 8px 0 0;
+    top: 0;
+    left: 0;
+}
+
+.rest {
+    position: absolute;
+    width: 18px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    font-family: "Segoe UI Symbol", "Noto Music", "Times New Roman", serif;
+    font-size: 30px;
+    line-height: 1;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    user-select: none;
+    pointer-events: none;
+}
+
+[data-duration] {
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+[data-duration].active {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+}
+
+@media (max-width: 700px) {
+    .staff-area {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .staff {
+        min-width: 2000px;
+    }
+}
+
