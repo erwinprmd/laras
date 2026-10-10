@@ -645,6 +645,16 @@ staff.addEventListener("pointermove", event => {
 
     draggedNote.style.top = `${y}px`;
 
+const note = notes.find(
+    item => item.element === draggedNote
+);
+
+if (note) {
+    note.y = y;
+    note.pitch = getPitchFromY(y);
+    draggedNote.dataset.pitch = note.pitch;
+}
+
     if (Math.abs(y - dragStartY) > 2) {
         hasDragged = true;
     }
