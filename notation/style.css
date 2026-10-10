@@ -235,8 +235,7 @@ body {
 
 .staff-line {
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 100px;
     height: 1px;
     margin: 0;
     background: var(--text);
