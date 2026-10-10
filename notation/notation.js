@@ -82,30 +82,34 @@ const importProjectFile = document.getElementById("importProjectFile");
 // PITCH ENGINE
 // ========================================
 
+
 function getPitchFromY(y, clef = currentClef) {
     const bottomLineY = lineSpacing * 5;
 
+    // Jarak posisi not dihitung dari garis paranada paling bawah.
     const step = Math.round(
         (bottomLineY - y) / staffStep
     );
 
-    // Bottom staff line:
-    // Treble = E4
-    // Bass   = G2
-
+    // Garis terbawah:
+    // Treble clef = E4
+    // Bass clef   = G2
     const baseIndex = clef === "bass"
         ? 2 * 7 + 4
         : 4 * 7 + 2;
 
     const absoluteIndex = baseIndex + step;
 
+    // Indeks nama nada, termasuk posisi di luar paranada.
     const letterIndex =
         ((absoluteIndex % 7) + 7) % 7;
 
+    // Menghitung oktaf secara otomatis.
     const octave = Math.floor(absoluteIndex / 7);
 
     return `${pitchNames[letterIndex]}${octave}`;
 }
+
 
 function getSnappedY(y) {
     return Math.round(y / staffStep) * staffStep;
