@@ -569,6 +569,88 @@ a {
     font-weight: 600;
 }
 
+/* =========================================================
+   LARAS — ALIGNMENT PATCH
+   Clef & time signature
+========================================================= */
+
+/* Signature panel */
+.notation-signature {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 0;
+    margin: 0 0 14px;
+    padding: 8px 12px;
+
+    border: 0;
+    border-bottom: 1px solid rgba(40, 37, 32, 0.16);
+}
+
+/* Clef alignment */
+.notation-signature .clef {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 48px;
+    min-width: 48px;
+    height: 72px;
+
+    font-family: 'Noto Music', 'Segoe UI Symbol', serif;
+    font-size: 58px;
+    line-height: 1;
+}
+
+/* Time signature alignment */
+.notation-signature .time-signature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 30px;
+    min-height: 58px;
+
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 0.95;
+}
+
+/* Keep the score area predictable */
+.staff-area {
+    position: relative;
+    overflow: auto;
+}
+
+.staff {
+    position: relative;
+    min-height: 130px;
+}
+
+/* Mobile adjustment */
+@media (max-width: 600px) {
+    .notation-signature {
+        gap: 12px;
+        padding: 6px 8px;
+        margin-bottom: 12px;
+    }
+
+    .notation-signature .clef {
+        width: 40px;
+        min-width: 40px;
+        height: 64px;
+        font-size: 48px;
+    }
+
+    .notation-signature .time-signature {
+        min-width: 26px;
+        min-height: 50px;
+        font-size: 19px;
+    }
+}
+
 /* 09. SCORE PAPER */
 
 .staff-area {
