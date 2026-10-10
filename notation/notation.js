@@ -1,32 +1,24 @@
-const pitchNames = [
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "A",
-    "B"
-];
+
+const pitchNames = ["C", "D", "E", "F", "G", "A", "B"];
 
 const lineSpacing = 22;
 const staffStep = lineSpacing / 2;
-
 const staff = document.querySelector(".staff");
 
-const notes = [];
+if (!staff) {
+    throw new Error('Elemen ".staff" tidak ditemukan.');
+}
 
 // =========================
-// MEASURES
+// MUSIC DATA
 // =========================
+
+const notes = [];
 
 let measures = [
     { number: 1, startX: 100, endX: 1000 },
     { number: 2, startX: 1000, endX: 1900 }
 ];
-
-// =========================
-// MUSIC SETTINGS
-// =========================
 
 let selectedDuration = "quarter";
 
@@ -42,46 +34,54 @@ const durationBeats = {
     eighth: 0.5
 };
 
+const restSymbols = {
+    whole: "𝄻",
+    half: "𝄼",
+    quarter: "𝄽",
+    eighth: "𝄾"
+};
+
+let draggedNote = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+let dragStartX = 0;
+let dragStartY = 0;
+let hasDragged = false;
+let suppressClickUntil = 0;
+
 // =========================
-// MEASURE FUNCTIONS
+// MEASURE CALCULATIONS
 // =========================
 
-function getMeasureBeats(measureNumber) {
-
+function getMeasureBeats(measureNumber, excludedNote = null) {
     return notes
-        .filter(note => note.measure === measureNumber)
-        .reduce((total, note) => {
-            return total + note.beats;
-        }, 0);
+        .filter(note =>
+            note.measure === measureNumber &&
+            note !== excludedNote
+        )
+        .reduce((total, note) => total + note.beats, 0);
 }
 
 function getMeasureStatus(measureNumber) {
-
     const beats = getMeasureBeats(measureNumber);
     const maxBeats = timeSignature.beats;
 
-    if (beats === 0) {
-        return "EMPTY";
-    }
-
-    if (beats < maxBeats) {
-        return "PARTIAL";
-    }
-
-    if (beats === maxBeats) {
-        return "FULL";
-    }
+    if (beats === 0) return "EMPTY";
+    if (beats < maxBeats) return "PARTIAL";
+    if (beats === maxBeats) return "FULL";
 
     return "OVERFULL";
 }
 
+function getMeasure(number) {
+    return measures.find(measure => measure.number === number);
+}
+
 function getCurrentMeasure() {
-
     for (const measure of measures) {
-
         const status = getMeasureStatus(measure.number);
 
-        if (status !== "FULL" && status !== "OVERFULL") {
+        if (status === "EMPTY" || status === "PARTIAL") {
             return measure;
         }
     }
@@ -90,17 +90,13 @@ function getCurrentMeasure() {
 }
 
 // =========================
-// CREATE NEXT MEASURE
+// MEASURE CREATION
 // =========================
 
 function createNextMeasure() {
+    const lastMeasure = measures[measures.length - 1];
 
-    const lastMeasure =
-        measures[measures.length - 1];
-
-    const measureWidth =
-        lastMeasure.endX -
-        lastMeasure.startX;
+    const measureWidth = lastMeasure.endX - lastMeasure.startX;
 
     const newMeasure = {
         number: lastMeasure.number + 1,
@@ -110,44 +106,34 @@ function createNextMeasure() {
 
     measures.push(newMeasure);
 
-    console.log(
-        "New measure created:",
-        newMeasure
-    );
-
     renderMeasures();
+
+    console.log("New measure created:", newMeasure);
 
     return newMeasure;
 }
 
 // =========================
-// RENDER MEASURES
+// STAFF RENDERING
 // =========================
 
-function renderMeasures() {
+function updateStaffWidth() {
+    const lastMeasure = measures[measures.length - 1];
 
-    document
-        .querySelectorAll(".barline.dynamic")
-        .forEach(barline => {
-            barline.remove();
-        });
+    staff.style.width = `${lastMeasure.endX + 100}px`;
+}
+
+function renderMeasures() {
+    staff.querySelectorAll(".barline.dynamic").forEach(line => line.remove());
 
     measures.forEach((measure, index) => {
+        if (index === 0) return;
 
-        if (index === 0) {
-            return;
-        }
+        const barline = document.createElement("div");
 
-        const barline =
-            document.createElement("div");
-
-        barline.classList.add(
-            "barline",
-            "dynamic"
-        );
-
-        barline.style.left =
-            `${measure.startX}px`;
+        barline.className = "barline dynamic";
+        barline.style.left = `${measure.startX}px`;
+        barline.style.pointerEvents = "none";
 
         staff.appendChild(barline);
     });
@@ -155,390 +141,265 @@ function renderMeasures() {
     updateStaffWidth();
 }
 
-function updateStaffWidth() {
-
-    const lastMeasure =
-        measures[measures.length - 1];
-
-    const width =
-        lastMeasure.endX + 100;
-
-    staff.style.width =
-        `${width}px`;
-}
-
-// =========================
-// RENDER STAFF LINES
-// =========================
-
 function renderStaffLines() {
-
-    document
-        .querySelectorAll(".staff-line")
-        .forEach(line => {
-            line.remove();
-        });
+    staff.querySelectorAll(".staff-line").forEach(line => line.remove());
 
     for (let i = 0; i < 5; i++) {
+        const line = document.createElement("div");
 
-        const line =
-            document.createElement("div");
-
-        line.classList.add("staff-line");
-
-        line.style.top =
-            `${lineSpacing + (i * lineSpacing)}px`;
+        line.className = "staff-line";
+        line.style.top = `${lineSpacing + i * lineSpacing}px`;
+        line.style.pointerEvents = "none";
 
         staff.appendChild(line);
     }
 }
 
-// Render initial measures
-renderStaffLines();
-renderMeasures();
-
 // =========================
-// INITIAL LOG
+// BEAT POSITIONING
 // =========================
 
-console.log(
-    "Current Measure:",
-    getCurrentMeasure()
-);
+function getBeatWidth(measure) {
+    const usableWidth =
+        (measure.endX - measure.startX) - 100;
 
-console.log(
-    "Time Signature:",
-    timeSignature
-);
+    return usableWidth / timeSignature.beats;
+}
 
-// =========================
-// DURATION BUTTONS
-// =========================
+function getNextBeatPosition(measureNumber) {
+    const measure = getMeasure(measureNumber);
 
-const durationButtons =
-    document.querySelectorAll(
-        "[data-duration]"
-    );
+    if (!measure) return null;
 
-durationButtons.forEach(button => {
+    const usedBeats = getMeasureBeats(measureNumber);
+    const beatWidth = getBeatWidth(measure);
 
-    button.addEventListener("click", () => {
+    return measure.startX + 50 + usedBeats * beatWidth;
+}
 
-        selectedDuration =
-            button.dataset.duration;
+function getNoteX(measureNumber, beatPosition) {
+    const measure = getMeasure(measureNumber);
 
-        console.log(
-            "Duration selected:",
-            selectedDuration
-        );
-    });
-});
+    if (!measure) return 0;
+
+    return measure.startX + 50 +
+        beatPosition * getBeatWidth(measure);
+}
 
 // =========================
-// DRAG STATE
+// PITCH CALCULATION
 // =========================
 
-let draggedNote = null;
-let dragOffsetX = 0;
-let dragOffsetY = 0;
-let hasDragged = false;
-let suppressClickUntil = 0;
+function getPitchFromY(y) {
+    const step = Math.round((y - lineSpacing) / staffStep);
 
- // =========================
-// REFLOW NOTES
+    return pitchNames[((3 - step) % 7 + 7) % 7];
+}
+
+function getSnappedY(y) {
+    return Math.round(y / staffStep) * staffStep;
+}
+
+// =========================
+// NOTE ELEMENTS
+// =========================
+
+function createNoteElement(noteData) {
+    const element = document.createElement("span");
+
+    element.className = `note ${noteData.duration}`;
+    element.dataset.pitch = noteData.pitch;
+
+    if (noteData.duration !== "whole") {
+        const stem = document.createElement("span");
+
+        stem.className = "stem";
+        element.appendChild(stem);
+
+        if (noteData.duration === "eighth") {
+            const flag = document.createElement("span");
+
+            flag.className = "flag";
+            stem.appendChild(flag);
+        }
+    }
+
+    element.style.left = `${noteData.x}px`;
+    element.style.top = `${noteData.y}px`;
+
+    return element;
+}
+
+function createRestElement(noteData) {
+    const element = document.createElement("span");
+
+    element.className = "rest";
+    element.dataset.duration = noteData.duration;
+    element.textContent = restSymbols[noteData.duration] || "𝄽";
+
+    element.style.left = `${noteData.x}px`;
+    element.style.top = `${noteData.y}px`;
+
+    return element;
+}
+
+function renderMusicElement(noteData) {
+    const oldElement = noteData.element;
+
+    const newElement = noteData.isRest
+        ? createRestElement(noteData)
+        : createNoteElement(noteData);
+
+    if (oldElement?.isConnected) {
+        oldElement.replaceWith(newElement);
+    } else {
+        staff.appendChild(newElement);
+    }
+
+    noteData.element = newElement;
+}
+
+// =========================
+// REFLOW NOTES AND RESTS
 // =========================
 
 function reflowNotes() {
-
     measures.forEach(measure => {
-
-        const measureNotes =
-            notes.filter(
-                note =>
-                    note.measure === measure.number
-            );
-
-        let beatPosition = 0;
+        const measureNotes = notes
+            .filter(note => note.measure === measure.number)
+            .sort((a, b) => a.beatPosition - b.beatPosition);
 
         measureNotes.forEach(note => {
+            note.x = getNoteX(note.measure, note.beatPosition);
 
-            const usableWidth =
-                (measure.endX - measure.startX) - 100;
-
-            const beatWidth =
-                usableWidth / timeSignature.beats;
-
-            const x =
-                measure.startX +
-                50 +
-                (beatPosition * beatWidth);
-
-            // Update data
-            note.x = x;
-            note.beatPosition = beatPosition;
-
-            // Update visual
-            note.element.style.left =
-                `${x}px`;
-
-            beatPosition += note.beats;
+            note.element.style.left = `${note.x}px`;
+            note.element.style.top = `${note.y}px`;
         });
     });
 }
 
 // =========================
-// CLICK STAFF
+// DURATION TOOLBAR
 // =========================
 
-staff.addEventListener("click", (event) => {
+function updateDurationButtons() {
+    document.querySelectorAll("[data-duration]").forEach(button => {
+        const isSelected = button.dataset.duration === selectedDuration;
 
-    if (Date.now() < suppressClickUntil) {
-        return;
-    }
-
-    if (event.target !== staff) {
-        return;
-    }
-
-    const currentMeasure =
-        getCurrentMeasure();
-
-    const usedBeats =
-    getMeasureBeats(currentMeasure.number);
-
-const noteBeats =
-    durationBeats[selectedDuration];
-
-if (usedBeats + noteBeats > timeSignature.beats) {
-
-    console.warn(
-        `Note tidak bisa ditambahkan. ` +
-        `Measure ${currentMeasure.number} hanya memiliki ` +
-        `${timeSignature.beats - usedBeats} beat tersisa.`
-    );
-
-    return;
+        button.classList.toggle("active", isSelected);
+        button.setAttribute("aria-pressed", String(isSelected));
+    });
 }
 
-    if (!currentMeasure) {
+document.querySelectorAll("[data-duration]").forEach(button => {
+    button.addEventListener("click", () => {
+        const duration = button.dataset.duration;
 
-        console.warn(
-            "No available measure."
-        );
-
-        return;
-    }
-
-    const rect =
-        staff.getBoundingClientRect();
-
-    const rawX =
-        event.clientX - rect.left;
-
-    const rawY =
-        event.clientY - rect.top;
-
-    // =========================
-    // POSITION X
-    // =========================
-
-    const x =
-    getNextBeatPosition(
-        currentMeasure.number
-    );
-    
-    // =========================
-    // POSITION Y
-    // =========================
-
-    const y =
-        Math.round(
-            rawY / staffStep
-        ) * staffStep;
-
-    // =========================
-    // PITCH
-    // =========================
-
-    const topLineY = lineSpacing;
-
-    const step =
-        Math.round(
-            (y - topLineY) / staffStep
-        );
-
-    const pitch =
-        pitchNames[
-            ((3 - step) % 7 + 7) % 7
-        ];
-
-   
-
-    // =========================
-    // CREATE NOTE
-    // =========================
-
-    const note =
-        document.createElement("span");
-
-    note.className =
-        `note ${selectedDuration}`;
-
-    note.dataset.pitch =
-        pitch;
-
-    // =========================
-    // STEM
-    // =========================
-
-    if (selectedDuration !== "whole") {
-
-        const stem =
-            document.createElement("span");
-
-        stem.className =
-            "stem";
-
-        note.appendChild(stem);
-
-        if (selectedDuration === "eighth") {
-
-            const flag =
-                document.createElement("span");
-
-            flag.className =
-                "flag";
-
-            stem.appendChild(flag);
+        if (!(duration in durationBeats)) {
+            console.warn("Durasi tidak dikenali:", duration);
+            return;
         }
-    }
 
-    // =========================
-    // PLACE NOTE
-    // =========================
+        selectedDuration = duration;
+        updateDurationButtons();
 
-    note.style.left =
-        `${x}px`;
-
-    note.style.top =
-        `${y}px`;
-
-    staff.appendChild(note);
-
-    // =========================
-    // SAVE NOTE DATA
-    // =========================
-
-    notes.push({
-    x: x,
-    y: y,
-    pitch: pitch,
-    duration: selectedDuration,
-    beats: durationBeats[selectedDuration],
-    beatPosition: getMeasureBeats(currentMeasure.number),
-    measure: currentMeasure.number,
-    element: note
+        console.log("Duration selected:", selectedDuration);
+    });
 });
 
-    // =========================
-    // DEBUG
-    // =========================
-
-    const addedNote =
-    notes[notes.length - 1];
-
-console.log(
-    `Note added: ${addedNote.pitch} | ` +
-    `Measure ${addedNote.measure} | ` +
-    `Beat ${addedNote.beatPosition} | ` +
-    `${addedNote.duration}`
-);
-
-    console.log(
-        `Measure ${currentMeasure.number} beats:`,
-        getMeasureBeats(
-            currentMeasure.number
-        )
-    );
-
-    console.log(
-        `Measure ${currentMeasure.number} status:`,
-        getMeasureStatus(
-            currentMeasure.number
-        )
-    );
-
-    console.log(
-        "Current Measure:",
-        getCurrentMeasure()
-    );
-});
-
-function getNextBeatPosition(measureNumber) {
-    const measure = measures.find(
-        measure => measure.number === measureNumber
-    );
-
-    if (!measure) {
-        return null;
-    }
-
-    const usedBeats = getMeasureBeats(measureNumber);
-
-    const usableWidth =
-        (measure.endX - measure.startX) - 100;
-
-    const beatWidth =
-        usableWidth / timeSignature.beats;
-
-    const x =
-        measure.startX +
-        50 +
-        (usedBeats * beatWidth);
-
-    return x;
-}
-
 // =========================
-// DELETE NOTE
+// ADD NOTE
 // =========================
 
+function addNote(y) {
+    const currentMeasure = getCurrentMeasure();
+    const beats = durationBeats[selectedDuration];
 
-staff.addEventListener("dblclick", (event) => {
+    const usedBeats = getMeasureBeats(currentMeasure.number);
 
-    const noteElement =
-        event.target.closest(".note");
-
-    if (!noteElement) {
-        return;
-    }
-
-    const noteData =
-        notes.find(
-            note => note.element === noteElement
+    if (usedBeats + beats > timeSignature.beats) {
+        console.warn(
+            `Not tidak bisa ditambahkan. Birama ${currentMeasure.number} ` +
+            `hanya memiliki ${timeSignature.beats - usedBeats} ketukan tersisa.`
         );
 
-    if (!noteData) {
         return;
     }
 
-    // Tandai elemen sebagai rest.
-    // Durasi, beatPosition, measure, dan beats tetap.
+    // Simpan posisi ketukan SEBELUM menambahkan not.
+    const beatPosition = usedBeats;
+    const x = getNextBeatPosition(currentMeasure.number);
+    const snappedY = getSnappedY(y);
+    const pitch = getPitchFromY(snappedY);
+
+    const noteData = {
+        x,
+        y: snappedY,
+        pitch,
+        duration: selectedDuration,
+        beats,
+        beatPosition,
+        measure: currentMeasure.number,
+        isRest: false,
+        element: null
+    };
+
+    noteData.element = createNoteElement(noteData);
+
+    staff.appendChild(noteData.element);
+    notes.push(noteData);
+
+    console.log(
+        `Note added: ${pitch} | Measure ${noteData.measure} | ` +
+        `Beat ${beatPosition} | ${selectedDuration}`
+    );
+
+    logMeasureStatus(noteData.measure);
+}
+
+function logMeasureStatus(measureNumber) {
+    console.log(
+        `Measure ${measureNumber} beats:`,
+        getMeasureBeats(measureNumber)
+    );
+
+    console.log(
+        `Measure ${measureNumber} status:`,
+        getMeasureStatus(measureNumber)
+    );
+
+    console.log("Current Measure:", getCurrentMeasure());
+}
+
+staff.addEventListener("click", event => {
+    if (Date.now() < suppressClickUntil) return;
+
+    // Hanya klik area kosong yang menambahkan not.
+    if (event.target !== staff) return;
+
+    const rect = staff.getBoundingClientRect();
+    const y = event.clientY - rect.top;
+
+    addNote(y);
+});
+
+// =========================
+// CONVERT NOTE TO REST
+// =========================
+
+staff.addEventListener("dblclick", event => {
+    const element = event.target.closest(".note");
+
+    if (!element || !staff.contains(element)) return;
+
+    const noteData = notes.find(note => note.element === element);
+
+    if (!noteData || noteData.isRest) return;
+
     noteData.isRest = true;
     noteData.pitch = null;
 
-    // Ubah tampilan elemen.
-    noteElement.className = "rest";
-    noteElement.removeAttribute("data-pitch");
-    noteElement.replaceChildren();
-    noteElement.textContent = "𝄽";
-
-    // Posisi tetap pada ketukan yang sama.
-    noteElement.style.left =
-        `${noteData.x}px`;
-
-    noteElement.style.top =
-        `${noteData.y}px`;
+    renderMusicElement(noteData);
 
     console.log("Note converted to rest:", {
         duration: noteData.duration,
@@ -558,165 +419,99 @@ staff.addEventListener("dblclick", (event) => {
     );
 });
 
-
 // =========================
-// START DRAG
-// =========================
-
-staff.addEventListener(
-    "pointerdown",
-    (event) => {
-
-        const noteElement =
-            event.target.closest(".note");
-
-        if (!noteElement) {
-            return;
-        }
-
-        draggedNote =
-            noteElement;
-
-        hasDragged = false;
-
-        const rect =
-            noteElement.getBoundingClientRect();
-
-        dragOffsetX =
-            event.clientX - rect.left;
-
-        dragOffsetY =
-            event.clientY - rect.top;
-
-        draggedNote.setPointerCapture(
-            event.pointerId
-        );
-    }
-);
-
-// =========================
-// DRAG NOTE
+// DRAG NOTES
 // =========================
 
-staff.addEventListener(
-    "pointermove",
-    (event) => {
+staff.addEventListener("pointerdown", event => {
+    const element = event.target.closest(".note");
 
-        if (!draggedNote) {
-            return;
-        }
+    // Rest bukan not bernada dan tidak bisa di-drag sebagai not.
+    if (!element || !staff.contains(element)) return;
 
+    const noteData = notes.find(note => note.element === element);
+
+    if (!noteData || noteData.isRest) return;
+
+    draggedNote = element;
+    hasDragged = false;
+
+    const rect = element.getBoundingClientRect();
+
+    dragOffsetX = event.clientX - rect.left;
+    dragOffsetY = event.clientY - rect.top;
+
+    dragStartX = noteData.x;
+    dragStartY = noteData.y;
+
+    element.setPointerCapture(event.pointerId);
+});
+
+staff.addEventListener("pointermove", event => {
+    if (!draggedNote) return;
+
+    const staffRect = staff.getBoundingClientRect();
+
+    const rawY =
+        event.clientY - staffRect.top - dragOffsetY;
+
+    const y = getSnappedY(rawY);
+
+    // Drag vertikal mengubah pitch.
+    // Posisi horizontal tetap mengikuti ketukan agar
+    // durasi dan urutan musik tidak rusak.
+    draggedNote.style.left = `${dragStartX}px`;
+    draggedNote.style.top = `${y}px`;
+
+    if (Math.abs(y - dragStartY) > 2) {
         hasDragged = true;
-
-        const staffRect =
-            staff.getBoundingClientRect();
-
-        const x =
-            event.clientX -
-            staffRect.left -
-            dragOffsetX;
-
-        const rawY =
-            event.clientY -
-            staffRect.top -
-            dragOffsetY;
-
-        const y =
-            Math.round(
-                rawY / staffStep
-            ) * staffStep;
-
-        draggedNote.style.left =
-            `${x}px`;
-
-        draggedNote.style.top =
-            `${y}px`;
     }
-);
+});
+
+function finishDrag() {
+    if (!draggedNote) return;
+
+    const element = draggedNote;
+    const noteData = notes.find(note => note.element === element);
+
+    if (noteData && hasDragged) {
+        const y = getSnappedY(parseFloat(element.style.top));
+
+        noteData.y = y;
+        noteData.pitch = getPitchFromY(y);
+
+        element.dataset.pitch = noteData.pitch;
+
+        // Pastikan x tetap sesuai posisi ketukan.
+        noteData.x = getNoteX(noteData.measure, noteData.beatPosition);
+        element.style.left = `${noteData.x}px`;
+
+        console.log("Note moved:", {
+            measure: noteData.measure,
+            beatPosition: noteData.beatPosition,
+            pitch: noteData.pitch,
+            x: noteData.x,
+            y: noteData.y
+        });
+
+        suppressClickUntil = Date.now() + 300;
+    }
+
+    draggedNote = null;
+    hasDragged = false;
+}
+
+staff.addEventListener("pointerup", finishDrag);
+staff.addEventListener("pointercancel", finishDrag);
 
 // =========================
-// END DRAG
+// INITIALIZE EDITOR
 // =========================
 
-staff.addEventListener(
-    "pointerup",
-    (event) => {
+renderStaffLines();
+renderMeasures();
+updateDurationButtons();
 
-        if (!draggedNote) {
-            return;
-        }
-
-        const noteElement =
-            draggedNote;
-
-        const x =
-            parseFloat(
-                noteElement.style.left
-            );
-
-        const y =
-            parseFloat(
-                noteElement.style.top
-            );
-
-        // =========================
-        // RECALCULATE PITCH
-        // =========================
-
-        const topLineY =
-            lineSpacing;
-
-        const step =
-            Math.round(
-                (y - topLineY) / staffStep
-            );
-
-        const pitch =
-            pitchNames[
-                ((3 - step) % 7 + 7) % 7
-            ];
-
-        // =========================
-        // UPDATE NOTE DATA
-        // =========================
-
-        const noteData =
-            notes.find(
-                note =>
-                    note.element ===
-                    noteElement
-            );
-
-        if (noteData) {
-
-            noteData.x = x;
-            noteData.y = y;
-            noteData.pitch = pitch;
-        }
-
-        noteElement.dataset.pitch =
-            pitch;
-
-        // =========================
-        // DRAG FINISHED
-        // =========================
-
-        if (hasDragged) {
-
-            console.log(
-                "Note moved:",
-                {
-                    x: x,
-                    y: y,
-                    pitch: pitch
-                }
-            );
-
-            suppressClickUntil =
-                Date.now() + 300;
-        }
-
-        draggedNote = null;
-        hasDragged = false;
-    }
-);
+console.log("LARAS notation engine initialized.");
+console.log("Time Signature:", timeSignature);
+console.log("Current Measure:", getCurrentMeasure());
