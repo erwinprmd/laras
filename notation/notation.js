@@ -133,31 +133,32 @@ function createNextMeasure() {
 // STAFF RENDERING
 // ========================================
 
+
 function updateStaffWidth() {
     const lastMeasure = measures[measures.length - 1];
 
     if (!lastMeasure) return;
 
+    // Reserve a little room after the final barline.
     staff.style.width = `${lastMeasure.endX + 100}px`;
 }
 
 function renderMeasures() {
     staff.querySelectorAll(".barline").forEach(line => line.remove());
 
-    measures.forEach((measure, index) => {
-        if (index === 0) return;
-
+    measures.forEach(measure => {
         const barline = document.createElement("div");
 
         barline.className = "barline dynamic";
         barline.style.left = `${measure.startX}px`;
-        barline.style.pointerEvents = "none";
 
         staff.appendChild(barline);
     });
 
     updateStaffWidth();
 }
+
+
 
 function renderStaffLines() {
     staff.querySelectorAll(".staff-line").forEach(line => line.remove());
@@ -166,12 +167,17 @@ function renderStaffLines() {
         const line = document.createElement("div");
 
         line.className = "staff-line";
+        line.style.left = "100px";
+        line.style.width = `${Math.max(
+            0,
+            measures[measures.length - 1].endX - 100
+        )}px`;
         line.style.top = `${lineSpacing + i * lineSpacing}px`;
-        line.style.pointerEvents = "none";
 
         staff.appendChild(line);
     }
 }
+
 
 // ========================================
 // CLEF & PITCH
@@ -302,11 +308,12 @@ if (signatureControl) {
 // NOTE POSITIONING
 // ========================================
 
-function getBeatWidth(measure) {
-    const usableWidth =
-        measure.endX - measure.startX - 100;
 
-    return usableWidth / timeSignature.beats;
+function getBeatWidth(measure) {
+    const measureWidth = measure.endX - measure.startX;
+    const noteAreaWidth = measureWidth - 100;
+
+    return noteAreaWidth / timeSignature.beats;
 }
 
 function getNextBeatPosition(measureNumber) {
@@ -314,8 +321,9 @@ function getNextBeatPosition(measureNumber) {
 
     if (!measure) return null;
 
-    return measure.startX + 50 +
-        getMeasureBeats(measureNumber) * getBeatWidth(measure);
+    const usedBeats = getMeasureBeats(measureNumber);
+
+    return getNoteX(measureNumber, usedBeats);
 }
 
 function getNoteX(measureNumber, beatPosition) {
@@ -323,20 +331,11 @@ function getNoteX(measureNumber, beatPosition) {
 
     if (!measure) return 0;
 
-    return measure.startX + 50 +
-        beatPosition * getBeatWidth(measure);
+    const beatWidth = getBeatWidth(measure);
+
+    return measure.startX + 50 + beatPosition * beatWidth;
 }
 
-function reflowNotes() {
-    notes.forEach(note => {
-        note.x = getNoteX(note.measure, note.beatPosition);
-
-        if (note.element) {
-            note.element.style.left = `${note.x}px`;
-            note.element.style.top = `${note.y}px`;
-        }
-    });
-}
 
 // ========================================
 // NOTE & REST ELEMENTS
@@ -399,8 +398,9 @@ function renderMusicElement(noteData) {
 // DURATION TOOLBAR
 // ========================================
 
+
 function updateDurationButtons() {
-    document.querySelectorAll("[data-duration]").forEach(button => {
+    document.querySelectorAll("button[data-duration]").forEach(button => {
         const selected =
             button.dataset.duration === selectedDuration;
 
@@ -409,7 +409,7 @@ function updateDurationButtons() {
     });
 }
 
-document.querySelectorAll("[data-duration]").forEach(button => {
+document.querySelectorAll("button[data-duration]").forEach(button => {
     button.addEventListener("click", () => {
         const duration = button.dataset.duration;
 
@@ -422,6 +422,7 @@ document.querySelectorAll("[data-duration]").forEach(button => {
         updateDurationButtons();
     });
 });
+
 
 // ========================================
 // ADD NOTE
