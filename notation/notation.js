@@ -17,19 +17,19 @@ if (!staff) {
     throw new Error('Elemen ".staff" tidak ditemukan.');
 }
 
-const durationBeats = {
+const durationBeats = Object.freeze({
     whole: 4,
     half: 2,
     quarter: 1,
     eighth: 0.5
-};
+});
 
-const restSymbols = {
+const restSymbols = Object.freeze({
     whole: "𝄻",
     half: "𝄼",
     quarter: "𝄽",
     eighth: "𝄾"
-};
+});
 
 const PROJECT_STORAGE_KEY = "laras_saved_compositions_v1";
 
@@ -38,6 +38,9 @@ const supportedTimeSignatures = [
     { beats: 3, beatUnit: 4 },
     { beats: 4, beatUnit: 4 }
 ];
+
+const MAX_MEASURES = 500;
+const MAX_COORDINATE = 100000;
 
 // ---------- EDITOR STATE ----------
 
@@ -76,17 +79,77 @@ const importProjectButton = document.getElementById("importProject");
 const importProjectFile = document.getElementById("importProjectFile");
 
 // ========================================
+// PITCH ENGINE
+// ========================================
+
+function getPitchFromY(y, clef = currentClef) {
+    const bottomLineY = lineSpacing * 5;
+
+    const step = Math.round(
+        (bottomLineY - y) / staffStep
+    );
+
+    // Bottom staff line:
+    // Treble = E4
+    // Bass   = G2
+
+    const baseIndex = clef === "bass"
+        ? 2 * 7 + 4
+        : 4 * 7 + 2;
+
+    const absoluteIndex = baseIndex + step;
+
+    const letterIndex =
+        ((absoluteIndex % 7) + 7) % 7;
+
+    const octave = Math.floor(absoluteIndex / 7);
+
+    return `${pitchNames[letterIndex]}${octave}`;
+}
+
+function getSnappedY(y) {
+    return Math.round(y / staffStep) * staffStep;
+}
+
+function refreshNotePitches() {
+    for (const note of notes) {
+        if (note.isRest) continue;
+
+        note.pitch = getPitchFromY(note.y);
+
+        if (note.element) {
+            note.element.dataset.pitch = note.pitch;
+        }
+    }
+}
+
+// ========================================
 // MEASURE ENGINE
 // ========================================
 
 function getMeasure(number) {
-    return measures.find(measure => measure.number === number);
+    return measures.find(
+        measure => measure.number === number
+    );
 }
 
+// Return the end of the latest occupied beat.
+// This avoids placing imported notes on top of
+// existing notes when there are gaps in a measure.
+
 function getMeasureBeats(measureNumber) {
-    return notes
-        .filter(note => note.measure === measureNumber)
-        .reduce((total, note) => total + note.beats, 0);
+    let endBeat = 0;
+
+    for (const note of notes) {
+        if (note.measure !== measureNumber) continue;
+
+        endBeat = Math.max(
+            endBeat,
+            note.beatPosition + note.beats
+        );
+    }
+
+    return endBeat;
 }
 
 function getMeasureStatus(measureNumber) {
@@ -103,7 +166,10 @@ function getCurrentMeasure() {
     for (const measure of measures) {
         const status = getMeasureStatus(measure.number);
 
-        if (status === "EMPTY" || status === "PARTIAL") {
+        if (
+            status === "EMPTY" ||
+            status === "PARTIAL"
+        ) {
             return measure;
         }
     }
@@ -113,7 +179,17 @@ function getCurrentMeasure() {
 
 function createNextMeasure() {
     const lastMeasure = measures[measures.length - 1];
-    const measureWidth = lastMeasure.endX - lastMeasure.startX;
+
+    if (!lastMeasure) {
+        throw new Error("Birama terakhir tidak ditemukan.");
+    }
+
+    if (lastMeasure.number >= MAX_MEASURES) {
+        throw new Error("Batas 500 birama telah tercapai.");
+    }
+
+    const measureWidth =
+        lastMeasure.endX - lastMeasure.startX;
 
     const newMeasure = {
         number: lastMeasure.number + 1,
@@ -122,9 +198,8 @@ function createNextMeasure() {
     };
 
     measures.push(newMeasure);
-    renderMeasures();
 
-    console.log("New measure created:", newMeasure);
+    renderMeasures();
 
     return newMeasure;
 }
@@ -133,111 +208,139 @@ function createNextMeasure() {
 // STAFF RENDERING
 // ========================================
 
-
 function updateStaffWidth() {
     const lastMeasure = measures[measures.length - 1];
 
     if (!lastMeasure) return;
 
-    // Reserve a little room after the final barline.
-    staff.style.width = `${lastMeasure.endX + 100}px`;
+    staff.style.width =
+        `${lastMeasure.endX + 100}px`;
 }
-
-function renderMeasures() {
-    staff.querySelectorAll(".barline").forEach(line => line.remove());
-
-    measures.forEach(measure => {
-        const barline = document.createElement("div");
-
-        barline.className = "barline dynamic";
-        barline.style.left = `${measure.startX}px`;
-
-        staff.appendChild(barline);
-    });
-
-    updateStaffWidth();
-}
-
-
 
 function renderStaffLines() {
-    staff.querySelectorAll(".staff-line").forEach(line => line.remove());
+    staff.querySelectorAll(".staff-line").forEach(
+        line => line.remove()
+    );
+
+    if (!measures.length) return;
+
+    const firstX = Math.min(
+        ...measures.map(measure => measure.startX)
+    );
+
+    const lastX = Math.max(
+        ...measures.map(measure => measure.endX)
+    );
 
     for (let i = 0; i < 5; i++) {
         const line = document.createElement("div");
 
         line.className = "staff-line";
-        line.style.left = "100px";
-        line.style.width = `${Math.max(
-            0,
-            measures[measures.length - 1].endX - 100
-        )}px`;
-        line.style.top = `${lineSpacing + i * lineSpacing}px`;
+        line.style.left = `${firstX}px`;
+        line.style.width = `${lastX - firstX}px`;
+        line.style.top =
+            `${lineSpacing + i * lineSpacing}px`;
+
+        line.style.pointerEvents = "none";
 
         staff.appendChild(line);
     }
 }
 
+function renderMeasures() {
+    staff.querySelectorAll(".barline").forEach(
+        line => line.remove()
+    );
 
-// ========================================
-// CLEF & PITCH
-// ========================================
+    for (const measure of measures) {
+        const barline = document.createElement("div");
 
+        barline.className = "barline dynamic";
+        barline.style.left = `${measure.startX}px`;
+        barline.style.pointerEvents = "none";
 
-function getPitchFromY(y) {
-    const letterNames = ["C", "D", "E", "F", "G", "A", "B"];
+        staff.appendChild(barline);
+    }
 
-    // Garis paling bawah paranada berada di y = 110
-    const bottomLineY = lineSpacing * 5;
+    // Draw the final boundary as well.
+    const lastMeasure = measures[measures.length - 1];
 
-    // Setiap langkah berpindah satu garis atau satu spasi
-    const step = Math.round((bottomLineY - y) / staffStep);
+    if (lastMeasure) {
+        const finalBarline = document.createElement("div");
 
-    // Indeks nada pada garis paling bawah:
-    // Treble clef: E4
-    // Bass clef: G2
-    const baseIndex = currentClef === "bass"
-        ? 2 * 7 + 4
-        : 4 * 7 + 2;
+        finalBarline.className = "barline dynamic final-barline";
+        finalBarline.style.left = `${lastMeasure.endX}px`;
+        finalBarline.style.pointerEvents = "none";
 
-    const absoluteIndex = baseIndex + step;
-    const letterIndex =
-        ((absoluteIndex % 7) + 7) % 7;
-    const octave = Math.floor(absoluteIndex / 7);
+        staff.appendChild(finalBarline);
+    }
 
-    return `${letterNames[letterIndex]}${octave}`;
+    renderStaffLines();
+    updateStaffWidth();
 }
 
-function refreshNotePitches() {
-    notes.forEach(note => {
-        if (note.isRest) return;
+// ========================================
+// CLEF
+// ========================================
 
-        note.pitch = getPitchFromY(note.y);
+function renderClef() {
+    if (!clefControl) return;
 
-        if (note.element) {
-            note.element.dataset.pitch = note.pitch;
-        }
+    const symbol = currentClef === "bass"
+        ? "𝄢"
+        : "𝄞";
+
+    clefControl.textContent = symbol;
+
+    clefControl.setAttribute(
+        "aria-label",
+        currentClef === "bass"
+            ? "Switch to treble clef"
+            : "Switch to bass clef"
+    );
+
+    clefControl.setAttribute(
+        "title",
+        currentClef === "bass"
+            ? "Bass clef"
+            : "Treble clef"
+    );
+}
+
+if (clefControl) {
+    clefControl.addEventListener("click", () => {
+        currentClef = currentClef === "treble"
+            ? "bass"
+            : "treble";
+
+        renderClef();
+        refreshNotePitches();
+
+        console.log("Clef changed:", currentClef);
     });
 }
-
 
 // ========================================
 // TIME SIGNATURE
 // ========================================
 
 function renderTimeSignature() {
-    const signature = document.querySelector(".time-signature");
+    const signatureElement =
+        document.querySelector(".time-signature");
 
-    if (signature) {
-        signature.replaceChildren();
+    if (signatureElement) {
+        signatureElement.replaceChildren();
 
         const numerator = document.createElement("span");
         const denominator = document.createElement("span");
 
-        numerator.textContent = String(timeSignature.beats);
-        denominator.textContent = String(timeSignature.beatUnit);
+        numerator.textContent =
+            String(timeSignature.beats);
 
-        signature.append(numerator, denominator);
+        denominator.textContent =
+            String(timeSignature.beatUnit);
+
+        signatureElement.append(numerator, denominator);
     }
 
     if (signatureControl) {
@@ -255,17 +358,13 @@ function changeTimeSignature() {
 
     const nextSignature =
         supportedTimeSignatures[
-            (currentIndex + 1) % supportedTimeSignatures.length
+            (currentIndex + 1) %
+            supportedTimeSignatures.length
         ];
 
-    // Do not allow a meter change that makes existing notes
-    // exceed the capacity of their measure.
-    const hasOverflow = measures.some(measure =>
-        notes
-            .filter(note => note.measure === measure.number)
-            .some(note =>
-                note.beatPosition + note.beats > nextSignature.beats
-            )
+    const hasOverflow = notes.some(note =>
+        note.beatPosition + note.beats >
+        nextSignature.beats
     );
 
     if (hasOverflow) {
@@ -282,45 +381,26 @@ function changeTimeSignature() {
 
     renderTimeSignature();
     reflowNotes();
-
-    console.log("Time signature changed:", { ...timeSignature });
-}
-
-if (clefControl) {
-    clefControl.addEventListener("click", () => {
-        currentClef = currentClef === "treble" ? "bass" : "treble";
-
-        renderClef();
-        refreshNotePitches();
-
-        console.log("Clef changed:", currentClef);
-    });
 }
 
 if (signatureControl) {
-    signatureControl.addEventListener("click", changeTimeSignature);
+    signatureControl.addEventListener(
+        "click",
+        changeTimeSignature
+    );
 }
 
 // ========================================
 // NOTE POSITIONING
 // ========================================
 
-
 function getBeatWidth(measure) {
-    const measureWidth = measure.endX - measure.startX;
+    const measureWidth =
+        measure.endX - measure.startX;
+
     const noteAreaWidth = measureWidth - 100;
 
     return noteAreaWidth / timeSignature.beats;
-}
-
-function getNextBeatPosition(measureNumber) {
-    const measure = getMeasure(measureNumber);
-
-    if (!measure) return null;
-
-    const usedBeats = getMeasureBeats(measureNumber);
-
-    return getNoteX(measureNumber, usedBeats);
 }
 
 function getNoteX(measureNumber, beatPosition) {
@@ -328,11 +408,36 @@ function getNoteX(measureNumber, beatPosition) {
 
     if (!measure) return 0;
 
-    const beatWidth = getBeatWidth(measure);
-
-    return measure.startX + 50 + beatPosition * beatWidth;
+    return (
+        measure.startX +
+        50 +
+        beatPosition * getBeatWidth(measure)
+    );
 }
 
+function getNextBeatPosition(measureNumber) {
+    const measure = getMeasure(measureNumber);
+
+    if (!measure) return null;
+
+    return getNoteX(
+        measureNumber,
+        getMeasureBeats(measureNumber)
+    );
+}
+
+function reflowNotes() {
+    for (const note of notes) {
+        note.x = getNoteX(
+            note.measure,
+            note.beatPosition
+        );
+
+        if (note.element) {
+            note.element.style.left = `${note.x}px`;
+        }
+    }
+}
 
 // ========================================
 // NOTE & REST ELEMENTS
@@ -342,15 +447,17 @@ function createNoteElement(noteData) {
     const element = document.createElement("span");
 
     element.className = `note ${noteData.duration}`;
-    element.dataset.pitch = noteData.pitch;
+    element.dataset.pitch = noteData.pitch || "";
 
     if (noteData.duration !== "whole") {
         const stem = document.createElement("span");
+
         stem.className = "stem";
         element.appendChild(stem);
 
         if (noteData.duration === "eighth") {
             const flag = document.createElement("span");
+
             flag.className = "flag";
             stem.appendChild(flag);
         }
@@ -367,7 +474,9 @@ function createRestElement(noteData) {
 
     element.className = "rest";
     element.dataset.duration = noteData.duration;
-    element.textContent = restSymbols[noteData.duration] || "𝄽";
+
+    element.textContent =
+        restSymbols[noteData.duration] || "𝄽";
 
     element.style.left = `${noteData.x}px`;
     element.style.top = `${noteData.y}px`;
@@ -395,22 +504,34 @@ function renderMusicElement(noteData) {
 // DURATION TOOLBAR
 // ========================================
 
-
 function updateDurationButtons() {
-    document.querySelectorAll("button[data-duration]").forEach(button => {
+    document.querySelectorAll(
+        "button[data-duration]"
+    ).forEach(button => {
         const selected =
             button.dataset.duration === selectedDuration;
 
         button.classList.toggle("active", selected);
-        button.setAttribute("aria-pressed", String(selected));
+
+        button.setAttribute(
+            "aria-pressed",
+            String(selected)
+        );
     });
 }
 
-document.querySelectorAll("button[data-duration]").forEach(button => {
+document.querySelectorAll(
+    "button[data-duration]"
+).forEach(button => {
     button.addEventListener("click", () => {
         const duration = button.dataset.duration;
 
-        if (!Object.hasOwn(durationBeats, duration)) {
+        if (
+            !Object.prototype.hasOwnProperty.call(
+                durationBeats,
+                duration
+            )
+        ) {
             console.warn("Unknown duration:", duration);
             return;
         }
@@ -420,26 +541,27 @@ document.querySelectorAll("button[data-duration]").forEach(button => {
     });
 });
 
-
 // ========================================
 // ADD NOTE
 // ========================================
 
 function addNote(y) {
+    if (!Number.isFinite(y)) return;
+
+    const snappedY = getSnappedY(y);
+
     const measure = getCurrentMeasure();
     const beats = durationBeats[selectedDuration];
-    const usedBeats = getMeasureBeats(measure.number);
+    const beatPosition =
+        getMeasureBeats(measure.number);
 
-    if (usedBeats + beats > timeSignature.beats) {
+    if (beatPosition + beats > timeSignature.beats) {
         console.warn("Measure capacity exceeded.");
         return;
     }
 
-    const beatPosition = usedBeats;
-    const snappedY = getSnappedY(y);
-
     const noteData = {
-        x: getNextBeatPosition(measure.number),
+        x: getNoteX(measure.number, beatPosition),
         y: snappedY,
         pitch: getPitchFromY(snappedY),
         duration: selectedDuration,
@@ -454,14 +576,6 @@ function addNote(y) {
 
     staff.appendChild(noteData.element);
     notes.push(noteData);
-
-    console.log("Note added:", {
-        pitch: noteData.pitch,
-        measure: noteData.measure,
-        beatPosition,
-        duration: selectedDuration,
-        status: getMeasureStatus(measure.number)
-    });
 }
 
 staff.addEventListener("click", event => {
@@ -482,7 +596,9 @@ staff.addEventListener("dblclick", event => {
 
     if (!element || !staff.contains(element)) return;
 
-    const note = notes.find(item => item.element === element);
+    const note = notes.find(
+        item => item.element === element
+    );
 
     if (!note || note.isRest) return;
 
@@ -490,8 +606,6 @@ staff.addEventListener("dblclick", event => {
     note.pitch = null;
 
     renderMusicElement(note);
-
-    console.log("Note converted to rest:", note.measure);
 });
 
 // ========================================
@@ -503,7 +617,9 @@ staff.addEventListener("pointerdown", event => {
 
     if (!element || !staff.contains(element)) return;
 
-    const note = notes.find(item => item.element === element);
+    const note = notes.find(
+        item => item.element === element
+    );
 
     if (!note || note.isRest) return;
 
@@ -511,14 +627,17 @@ staff.addEventListener("pointerdown", event => {
     hasDragged = false;
     dragStartY = note.y;
 
-    element.setPointerCapture(event.pointerId);
+    element.setPointerCapture?.(event.pointerId);
 });
 
 staff.addEventListener("pointermove", event => {
     if (!draggedNote) return;
 
     const rect = staff.getBoundingClientRect();
-    const y = getSnappedY(event.clientY - rect.top);
+
+    const y = getSnappedY(
+        event.clientY - rect.top
+    );
 
     draggedNote.style.top = `${y}px`;
 
@@ -531,12 +650,21 @@ function finishDrag() {
     if (!draggedNote) return;
 
     const element = draggedNote;
-    const note = notes.find(item => item.element === element);
+
+    const note = notes.find(
+        item => item.element === element
+    );
 
     if (note && hasDragged) {
-        note.y = getSnappedY(parseFloat(element.style.top));
+        note.y = getSnappedY(
+            parseFloat(element.style.top)
+        );
+
         note.pitch = getPitchFromY(note.y);
-        note.x = getNoteX(note.measure, note.beatPosition);
+        note.x = getNoteX(
+            note.measure,
+            note.beatPosition
+        );
 
         element.dataset.pitch = note.pitch;
         element.style.left = `${note.x}px`;
@@ -564,8 +692,12 @@ function updateProjectStatus(message) {
 
 function getSavedProjects() {
     try {
-        const stored = localStorage.getItem(PROJECT_STORAGE_KEY);
-        const projects = stored ? JSON.parse(stored) : {};
+        const stored =
+            localStorage.getItem(PROJECT_STORAGE_KEY);
+
+        const projects = stored
+            ? JSON.parse(stored)
+            : {};
 
         if (
             !projects ||
@@ -589,7 +721,11 @@ function buildProjectData() {
         name: currentProjectName,
         clef: currentClef,
         timeSignature: { ...timeSignature },
-        measures: measures.map(measure => ({ ...measure })),
+
+        measures: measures.map(measure => ({
+            ...measure
+        })),
+
         notes: notes.map(note => ({
             x: note.x,
             y: note.y,
@@ -600,12 +736,16 @@ function buildProjectData() {
             measure: note.measure,
             isRest: note.isRest
         })),
+
         updatedAt: new Date().toISOString()
     };
 }
 
 function saveProject() {
-    const input = prompt("Nama komposisi:", currentProjectName);
+    const input = prompt(
+        "Nama komposisi:",
+        currentProjectName
+    );
 
     if (input === null) return;
 
@@ -618,10 +758,9 @@ function saveProject() {
 
     try {
         const projects = getSavedProjects();
-
         const data = buildProjectData();
-        data.name = name;
 
+        data.name = name;
         projects[name] = data;
 
         localStorage.setItem(
@@ -630,12 +769,14 @@ function saveProject() {
         );
 
         currentProjectName = name;
-        updateProjectStatus(`Saved: ${name}`);
 
-        console.log("Project saved:", name);
+        updateProjectStatus(`Saved: ${name}`);
     } catch (error) {
         console.error("Save failed:", error);
-        alert("Komposisi gagal disimpan di browser.");
+
+        alert(
+            "Komposisi gagal disimpan di browser."
+        );
     }
 }
 
@@ -653,17 +794,21 @@ function clearComposition() {
 
 function createNewProject() {
     if (notes.length > 0) {
-        if (!confirm("Mulai komposisi baru? Simpan pekerjaanmu terlebih dahulu.")) {
-            return;
-        }
+        const confirmed = confirm(
+            "Mulai komposisi baru? Simpan pekerjaanmu terlebih dahulu."
+        );
+
+        if (!confirmed) return;
     }
 
     clearComposition();
 
     currentProjectName = "Untitled composition";
     currentClef = "treble";
+
     timeSignature.beats = 4;
     timeSignature.beatUnit = 4;
+
     selectedDuration = "quarter";
 
     renderClef();
@@ -677,12 +822,7 @@ function createNewProject() {
 // VALIDATE IMPORTED PROJECT
 // ========================================
 
-
 function normalizeProject(data) {
-    // =========================
-    // 1. VALIDATE PROJECT
-    // =========================
-
     if (
         !data ||
         typeof data !== "object" ||
@@ -703,10 +843,6 @@ function normalizeProject(data) {
         );
     }
 
-    // =========================
-    // 2. TIME SIGNATURE
-    // =========================
-
     const signature = data.timeSignature == null
         ? { beats: 4, beatUnit: 4 }
         : data.timeSignature;
@@ -723,27 +859,22 @@ function normalizeProject(data) {
         );
     }
 
-    const timeSignature = {
-        beats: signature.beats,
-        beatUnit: signature.beatUnit
-    };
-
-    // =========================
-    // 3. CLEF
-    // =========================
-
-    // Keep the existing fallback for older project files.
-    const clef = data.clef === "bass"
+    const importedClef = data.clef === "bass"
         ? "bass"
         : "treble";
-
-    // =========================
-    // 4. NORMALIZE MEASURES
-    // =========================
 
     if (data.measures.length === 0) {
         throw new Error(
             "Tidak ditemukan birama yang valid."
+        );
+    }
+
+    if (
+        data.measures.length > MAX_MEASURES ||
+        data.notes.length > 10000
+    ) {
+        throw new Error(
+            "File memiliki terlalu banyak data."
         );
     }
 
@@ -756,8 +887,11 @@ function normalizeProject(data) {
                 typeof measure !== "object" ||
                 !Number.isInteger(measure.number) ||
                 measure.number < 1 ||
+                measure.number > MAX_MEASURES ||
                 !Number.isFinite(measure.startX) ||
                 !Number.isFinite(measure.endX) ||
+                Math.abs(measure.startX) > MAX_COORDINATE ||
+                Math.abs(measure.endX) > MAX_COORDINATE ||
                 measure.endX <= measure.startX
             ) {
                 throw new Error(
@@ -781,10 +915,6 @@ function normalizeProject(data) {
         }
     ).sort((a, b) => a.number - b.number);
 
-    // =========================
-    // 5. NORMALIZE NOTES
-    // =========================
-
     const normalizedNotes = data.notes.map(
         (note, index) => {
             if (
@@ -798,14 +928,10 @@ function normalizeProject(data) {
             }
 
             if (
-                typeof durationBeats !== "object" ||
-                durationBeats === null ||
                 !Object.prototype.hasOwnProperty.call(
                     durationBeats,
                     note.duration
-                ) ||
-                !Number.isFinite(durationBeats[note.duration]) ||
-                durationBeats[note.duration] <= 0
+                )
             ) {
                 throw new Error(
                     `Durasi not ke-${index + 1} tidak valid.`
@@ -815,9 +941,11 @@ function normalizeProject(data) {
             if (
                 !Number.isInteger(note.measure) ||
                 note.measure < 1 ||
+                note.measure > MAX_MEASURES ||
                 !Number.isFinite(note.beatPosition) ||
                 note.beatPosition < 0 ||
-                !Number.isFinite(note.y)
+                !Number.isFinite(note.y) ||
+                Math.abs(note.y) > MAX_COORDINATE
             ) {
                 throw new Error(
                     `Posisi not ke-${index + 1} tidak valid.`
@@ -834,24 +962,45 @@ function normalizeProject(data) {
             }
 
             const isRest = note.isRest === true;
-            const pitch = isRest ? null : note.pitch;
 
-            if (
-                !isRest &&
-                (
-                    typeof pitch !== "string" ||
-                    !pitchNames.includes(pitch)
-                )
-            ) {
-                throw new Error(
-                    `Pitch not ke-${index + 1} tidak valid.`
-                );
+            let pitch = isRest ? null : note.pitch;
+
+            if (!isRest) {
+                // Accept both legacy pitches ("E")
+                // and octave-aware pitches ("E4").
+                const validPitch =
+                    typeof pitch === "string" &&
+                    /^[A-G](?:[0-9])?$/.test(pitch);
+
+                if (!validPitch) {
+                    throw new Error(
+                        `Pitch not ke-${index + 1} tidak valid.`
+                    );
+                }
+
+                if (pitch.length === 1) {
+                    pitch = getPitchFromY(
+                        note.y,
+                        importedClef
+                    );
+
+                    if (
+                        typeof pitch !== "string" ||
+                        !/^[A-G][0-9]$/.test(pitch)
+                    ) {
+                        throw new Error(
+                            `Pitch not ke-${index + 1} tidak valid.`
+                        );
+                    }
+                }
             }
 
             return {
-                x: Number.isFinite(note.x)
+                x: Number.isFinite(note.x) &&
+                    Math.abs(note.x) <= MAX_COORDINATE
                     ? note.x
                     : 0,
+
                 y: note.y,
                 pitch,
                 duration: note.duration,
@@ -864,39 +1013,30 @@ function normalizeProject(data) {
         }
     );
 
-    // =========================
-    // 6. DETERMINE MEASURE RANGE
-    // =========================
+    let maxMeasure = 2;
 
-    
-let maxMeasure = 2;
+    for (const measure of normalizedMeasures) {
+        maxMeasure = Math.max(
+            maxMeasure,
+            measure.number
+        );
+    }
 
-for (const measure of normalizedMeasures) {
-    maxMeasure = Math.max(
-        maxMeasure,
-        measure.number
-    );
-}
+    for (const note of normalizedNotes) {
+        maxMeasure = Math.max(
+            maxMeasure,
+            note.measure
+        );
+    }
 
-for (const note of normalizedNotes) {
-    maxMeasure = Math.max(
-        maxMeasure,
-        note.measure
-    );
-}
-
-if (maxMeasure > 500) {
-    throw new Error(
-        "File memiliki terlalu banyak birama."
-    );
-}
-
-
-    // =========================
-    // 7. FILL MISSING MEASURES
-    // =========================
+    if (maxMeasure > MAX_MEASURES) {
+        throw new Error(
+            "File memiliki terlalu banyak birama."
+        );
+    }
 
     const firstMeasure = normalizedMeasures[0];
+
     const measureWidth =
         firstMeasure.endX - firstMeasure.startX;
 
@@ -912,29 +1052,36 @@ if (maxMeasure > 500) {
         number <= maxMeasure;
         number++
     ) {
-        if (!measureMap.has(number)) {
-            // Anchor generated measures to the actual
-            // number of the first existing measure.
-            const startX =
-                firstMeasure.startX +
-                (number - firstMeasure.number) *
-                    measureWidth;
+        if (measureMap.has(number)) continue;
 
-            measureMap.set(number, {
-                number,
-                startX,
-                endX: startX + measureWidth
-            });
+        const startX =
+            firstMeasure.startX +
+            (number - firstMeasure.number) *
+                measureWidth;
+
+        const endX = startX + measureWidth;
+
+        if (
+            !Number.isFinite(startX) ||
+            !Number.isFinite(endX) ||
+            Math.abs(startX) > MAX_COORDINATE ||
+            Math.abs(endX) > MAX_COORDINATE
+        ) {
+            throw new Error(
+                "Koordinat birama berada di luar batas."
+            );
         }
+
+        measureMap.set(number, {
+            number,
+            startX,
+            endX
+        });
     }
 
     const finalMeasures = Array.from(
         measureMap.values()
     ).sort((a, b) => a.number - b.number);
-
-    // =========================
-    // 8. VALIDATE RHYTHM
-    // =========================
 
     const notesByMeasure = new Map();
 
@@ -962,7 +1109,7 @@ if (maxMeasure > 500) {
 
             if (
                 note.beatPosition < previousEnd ||
-                noteEnd > timeSignature.beats
+                noteEnd > signature.beats
             ) {
                 throw new Error(
                     `Susunan ketukan pada birama ${measure.number} tidak valid.`
@@ -973,10 +1120,6 @@ if (maxMeasure > 500) {
         }
     }
 
-    // =========================
-    // 9. RETURN NORMALIZED PROJECT
-    // =========================
-
     return {
         name:
             typeof data.name === "string" &&
@@ -984,23 +1127,24 @@ if (maxMeasure > 500) {
                 ? data.name.trim()
                 : "Imported composition",
 
-        clef,
+        clef: importedClef,
 
-        timeSignature,
+        timeSignature: {
+            beats: signature.beats,
+            beatUnit: signature.beatUnit
+        },
 
         measures: finalMeasures,
-
         notes: normalizedNotes
     };
 }
-
 
 // ========================================
 // LOAD PROJECT
 // ========================================
 
 function loadProjectData(data) {
-    // Validate everything before replacing the current composition.
+    // Validate before changing the current composition.
     const project = normalizeProject(data);
 
     clearComposition();
@@ -1008,25 +1152,37 @@ function loadProjectData(data) {
     currentProjectName = project.name;
     currentClef = project.clef;
 
-    timeSignature.beats = project.timeSignature.beats;
-    timeSignature.beatUnit = project.timeSignature.beatUnit;
+    timeSignature.beats =
+        project.timeSignature.beats;
+
+    timeSignature.beatUnit =
+        project.timeSignature.beatUnit;
 
     measures = project.measures;
 
-    project.notes.forEach(note => {
+    for (const note of project.notes) {
         notes.push(note);
         renderMusicElement(note);
-    });
+    }
 
     renderMeasures();
+
+    // Recalculate horizontal positions, but preserve
+    // imported pitch and vertical position.
     reflowNotes();
-    refreshNotePitches();
 
     renderClef();
     renderTimeSignature();
-    updateProjectStatus(`Opened: ${currentProjectName}`);
+    updateDurationButtons();
 
-    console.log("Project loaded:", currentProjectName);
+    updateProjectStatus(
+        `Opened: ${currentProjectName}`
+    );
+
+    console.log(
+        "Project loaded:",
+        currentProjectName
+    );
 }
 
 // ========================================
@@ -1038,7 +1194,9 @@ function openProject() {
     const names = Object.keys(projects);
 
     if (!names.length) {
-        alert("Belum ada komposisi tersimpan di browser ini.");
+        alert(
+            "Belum ada komposisi tersimpan di browser ini."
+        );
         return;
     }
 
@@ -1054,14 +1212,20 @@ function openProject() {
 
     const index = Number(choice) - 1;
 
-    if (!Number.isInteger(index) || index < 0 || index >= names.length) {
+    if (
+        !Number.isInteger(index) ||
+        index < 0 ||
+        index >= names.length
+    ) {
         alert("Nomor komposisi tidak valid.");
         return;
     }
 
     if (
         notes.length > 0 &&
-        !confirm("Komposisi saat ini akan diganti. Lanjutkan?")
+        !confirm(
+            "Komposisi saat ini akan diganti. Lanjutkan?"
+        )
     ) {
         return;
     }
@@ -1070,7 +1234,10 @@ function openProject() {
         loadProjectData(projects[names[index]]);
     } catch (error) {
         console.error("Open failed:", error);
-        alert(`Komposisi gagal dibuka: ${error.message}`);
+
+        alert(
+            `Komposisi gagal dibuka: ${error.message}`
+        );
     }
 }
 
@@ -1079,19 +1246,24 @@ function openProject() {
 // ========================================
 
 function exportProject() {
+    let url = null;
+
     try {
         const data = buildProjectData();
+
         const blob = new Blob(
             [JSON.stringify(data, null, 2)],
             { type: "application/json" }
         );
 
-        const url = URL.createObjectURL(blob);
+        url = URL.createObjectURL(blob);
+
         const link = document.createElement("a");
 
         const safeName = currentProjectName
             .replace(/[^a-z0-9_-]+/gi, "-")
-            .replace(/^-+|-+$/g, "") || "laras-composition";
+            .replace(/^-+|-+$/g, "")
+            || "laras-composition";
 
         link.href = url;
         link.download = `${safeName}.json`;
@@ -1100,12 +1272,19 @@ function exportProject() {
         link.click();
         link.remove();
 
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-        updateProjectStatus(`Exported: ${currentProjectName}`);
+        updateProjectStatus(
+            `Exported: ${currentProjectName}`
+        );
     } catch (error) {
         console.error("Export failed:", error);
         alert("Komposisi gagal diekspor.");
+    } finally {
+        if (url) {
+            setTimeout(
+                () => URL.revokeObjectURL(url),
+                1000
+            );
+        }
     }
 }
 
@@ -1118,30 +1297,42 @@ function importProject() {
 }
 
 if (importProjectFile) {
-    importProjectFile.addEventListener("change", async event => {
-        const file = event.target.files?.[0];
+    importProjectFile.addEventListener(
+        "change",
+        async event => {
+            const file = event.target.files?.[0];
 
-        if (!file) return;
+            if (!file) return;
 
-        try {
-            const text = await file.text();
-            const data = JSON.parse(text);
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
 
-            if (
-                notes.length > 0 &&
-                !confirm("Komposisi saat ini akan diganti. Lanjutkan impor?")
-            ) {
-                return;
+                // Validate before asking to replace the
+                // current composition.
+                const project = normalizeProject(data);
+
+                if (
+                    notes.length > 0 &&
+                    !confirm(
+                        "Komposisi saat ini akan diganti. Lanjutkan impor?"
+                    )
+                ) {
+                    return;
+                }
+
+                loadProjectData(project);
+            } catch (error) {
+                console.error("Import failed:", error);
+
+                alert(
+                    `Impor gagal: ${error.message}`
+                );
+            } finally {
+                importProjectFile.value = "";
             }
-
-            loadProjectData(data);
-        } catch (error) {
-            console.error("Import failed:", error);
-            alert(`Impor gagal: ${error.message}`);
-        } finally {
-            importProjectFile.value = "";
         }
-    });
+    );
 }
 
 // ========================================
@@ -1149,23 +1340,38 @@ if (importProjectFile) {
 // ========================================
 
 if (newProjectButton) {
-    newProjectButton.addEventListener("click", createNewProject);
+    newProjectButton.addEventListener(
+        "click",
+        createNewProject
+    );
 }
 
 if (saveProjectButton) {
-    saveProjectButton.addEventListener("click", saveProject);
+    saveProjectButton.addEventListener(
+        "click",
+        saveProject
+    );
 }
 
 if (openProjectButton) {
-    openProjectButton.addEventListener("click", openProject);
+    openProjectButton.addEventListener(
+        "click",
+        openProject
+    );
 }
 
 if (exportProjectButton) {
-    exportProjectButton.addEventListener("click", exportProject);
+    exportProjectButton.addEventListener(
+        "click",
+        exportProject
+    );
 }
 
 if (importProjectButton) {
-    importProjectButton.addEventListener("click", importProject);
+    importProjectButton.addEventListener(
+        "click",
+        importProject
+    );
 }
 
 // ========================================
@@ -1177,6 +1383,7 @@ renderMeasures();
 renderClef();
 renderTimeSignature();
 updateDurationButtons();
+
 updateProjectStatus(currentProjectName);
 
 console.log("LARAS notation engine initialized.");
