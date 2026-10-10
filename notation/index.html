@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="id">
 
@@ -10,7 +10,7 @@
 
     <meta
         name="description"
-        content="LARAS Music Notation — digital music notation workspace."
+        content="LARAS — workspace untuk mengolah MIDI menjadi notasi musik dan partitur angklung."
     >
 
     <meta name="theme-color" content="#f7f5f0">
@@ -35,13 +35,13 @@
     <main class="notation-workspace">
 
         <section class="workspace-intro">
-            <p class="eyebrow">MUSIC NOTATION</p>
+            <p class="eyebrow">MUSIC TECHNOLOGY</p>
 
-            <h1>Write music.</h1>
+            <h1>MIDI to Angklung Score.</h1>
 
             <p>
-                A simple workspace for creating
-                and exploring musical notation.
+                Import MIDI files, explore musical notes,
+                and prepare your music for angklung arrangement.
             </p>
         </section>
 
@@ -78,6 +78,102 @@
                 >
 
             </div>
+
+            <!-- MIDI IMPORTER -->
+            <section class="midi-importer" aria-labelledby="midiTitle">
+
+                <div class="midi-importer-heading">
+                    <p class="eyebrow">STEP 01</p>
+
+                    <h2 id="midiTitle">Import MIDI</h2>
+
+                    <p>
+                        Pilih file MIDI untuk memulai proses
+                        pembacaan data musik.
+                    </p>
+                </div>
+
+                <label class="midi-file-picker" for="midiFileInput">
+
+                    <span class="midi-file-icon" aria-hidden="true">
+                        ♫
+                    </span>
+
+                    <span class="midi-file-picker-title">
+                        Choose a MIDI file
+                    </span>
+
+                    <span class="midi-file-picker-description">
+                        Format yang didukung: .mid dan .midi
+                    </span>
+
+                    <input
+                        type="file"
+                        id="midiFileInput"
+                        accept=".mid,.midi,audio/midi,audio/x-midi"
+                    >
+
+                </label>
+
+                <div
+                    id="midiImportStatus"
+                    class="midi-import-status"
+                    role="status"
+                    aria-live="polite"
+                >
+                    Belum ada file MIDI yang dipilih.
+                </div>
+
+                <div
+                    id="midiAnalysis"
+                    class="midi-analysis"
+                    hidden
+                >
+
+                    <h3>File information</h3>
+
+                    <dl class="midi-metadata">
+
+                        <div>
+                            <dt>File name</dt>
+                            <dd id="midiFileName">—</dd>
+                        </div>
+
+                        <div>
+                            <dt>File size</dt>
+                            <dd id="midiFileSize">—</dd>
+                        </div>
+
+                        <div>
+                            <dt>Tracks</dt>
+                            <dd id="midiTrackCount">—</dd>
+                        </div>
+
+                        <div>
+                            <dt>Tempo</dt>
+                            <dd id="midiTempo">—</dd>
+                        </div>
+
+                        <div>
+                            <dt>Time signature</dt>
+                            <dd id="midiTimeSignature">—</dd>
+                        </div>
+
+                        <div>
+                            <dt>Notes</dt>
+                            <dd id="midiNoteCount">—</dd>
+                        </div>
+
+                    </dl>
+
+                    <p class="midi-analysis-note">
+                        Informasi akan muncul setelah file berhasil
+                        dibaca oleh MIDI engine.
+                    </p>
+
+                </div>
+
+            </section>
 
             <!-- NOTATION TOOLBAR -->
             <div class="editor-toolbar">
@@ -171,4 +267,6 @@
     <script src="notation.js"></script>
 
 </body>
+
 </html>
+```
