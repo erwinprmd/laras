@@ -1035,136 +1035,124 @@ footer a:hover {
 }
 
 
+
 /* =========================================================
-   LARAS — STAFF ALIGNMENT PATCH
-   Menyatukan tinggi visual clef, time signature, dan staff
+   LARAS — STAFF & NOTATION ALIGNMENT
 ========================================================= */
 
-/* Area kertas notasi */
 .staff-area {
     position: relative;
     overflow: auto;
-    isolation: isolate;
 }
 
-/*
-   Header notasi dibuat setinggi area staff.
-   Aturan ini menghilangkan garis pembatas dan jarak
-   vertikal berlebih dari style sebelumnya.
-*/
-.staff-area .notation-signature {
+/* Clef, time signature, dan staff berada dalam satu baris */
+.notation-row {
+    display: flex;
+    align-items: flex-start;
+    width: max-content;
+    min-width: 100%;
+    min-height: 130px;
+}
+
+/* Area clef dan tanda birama */
+.notation-row .notation-signature {
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: flex-start;
+    gap: 8px;
 
-    min-height: 130px;
+    flex: 0 0 100px;
+    width: 100px;
     height: 130px;
+    min-height: 130px;
 
     margin: 0;
-    padding: 0;
+    padding: 0 8px 0 0;
 
-    color: var(--ink);
-    background: transparent;
     border: 0;
+    background: transparent;
 }
 
-/* Kunci musik */
-.staff-area .notation-signature .clef {
-    display: inline-flex;
+/* Clef G */
+.notation-row .clef {
+    display: flex;
     align-items: center;
     justify-content: center;
 
-    width: 54px;
-    min-width: 54px;
+    flex: 0 0 48px;
+    width: 48px;
+    min-width: 48px;
     height: 130px;
 
     margin: 0;
     padding: 0;
 
-    color: var(--ink);
     font-family: 'Noto Music', 'Segoe UI Symbol', serif;
-    font-size: 68px;
+    font-size: 62px;
     line-height: 1;
 }
 
-/* Angka tanda birama */
-.staff-area .notation-signature .time-signature {
-    display: inline-flex;
+/* Tanda birama */
+.notation-row .time-signature {
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 3px;
 
-    min-width: 34px;
+    flex: 0 0 32px;
+    width: 32px;
+    min-width: 32px;
     height: 130px;
 
     margin: 0;
     padding: 0;
 
-    color: var(--ink);
-    font-family: var(--font-display);
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 21px;
     line-height: 1;
 }
 
-.staff-area .notation-signature .time-signature span {
+.notation-row .time-signature span {
     display: block;
     margin: 0;
     padding: 0;
     line-height: 1;
 }
 
-/* Area lima garis paranada */
-.staff-area .staff {
+/* Area paranada */
+.notation-row .staff {
     position: relative;
-    min-width: 100%;
+
+    flex: 0 0 auto;
+    min-width: 0;
     min-height: 130px;
+    height: 130px;
+
     margin: 0;
     padding: 0;
     background: transparent;
-    isolation: isolate;
 }
 
-/* Lima garis paranada */
-.staff-area .staff .staff-line {
-    position: absolute;
-    height: 1px;
-    pointer-events: none;
-}
-
-/* Garis birama */
-.staff-area .staff .barline {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    pointer-events: none;
-}
-
-/* Tampilan tablet dan HP */
+/* Tampilan layar kecil */
 @media (max-width: 600px) {
-    .staff-area .notation-signature {
-        gap: 9px;
-        min-height: 130px;
-        height: 130px;
+    .notation-row .notation-signature {
+        flex-basis: 88px;
+        width: 88px;
+        gap: 5px;
     }
 
-    .staff-area .notation-signature .clef {
-        width: 44px;
-        min-width: 44px;
-        height: 130px;
-        font-size: 60px;
+    .notation-row .clef {
+        flex-basis: 43px;
+        width: 43px;
+        min-width: 43px;
+        font-size: 56px;
     }
 
-    .staff-area .notation-signature .time-signature {
+    .notation-row .time-signature {
+        flex-basis: 30px;
+        width: 30px;
         min-width: 30px;
-        height: 130px;
-        font-size: 21px;
-    }
-
-    .staff-area .staff {
-        min-height: 130px;
+        font-size: 19px;
     }
 }
 
