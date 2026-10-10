@@ -183,33 +183,29 @@ function renderStaffLines() {
 // CLEF & PITCH
 // ========================================
 
+
 function getPitchFromY(y) {
-    const step = Math.round((y - lineSpacing) / staffStep);
+    const letterNames = ["C", "D", "E", "F", "G", "A", "B"];
 
-    // Letter-name mapping only; octave is not stored yet.
-    const topLineIndex = currentClef === "bass" ? 5 : 3;
+    // Garis paling bawah paranada berada di y = 110
+    const bottomLineY = lineSpacing * 5;
 
-    return pitchNames[
-        ((topLineIndex - step) % 7 + 7) % 7
-    ];
-}
+    // Setiap langkah berpindah satu garis atau satu spasi
+    const step = Math.round((bottomLineY - y) / staffStep);
 
-function getSnappedY(y) {
-    return Math.round(y / staffStep) * staffStep;
-}
+    // Indeks nada pada garis paling bawah:
+    // Treble clef: E4
+    // Bass clef: G2
+    const baseIndex = currentClef === "bass"
+        ? 2 * 7 + 4
+        : 4 * 7 + 2;
 
-function renderClef() {
-    const clefElement = document.querySelector(".clef");
+    const absoluteIndex = baseIndex + step;
+    const letterIndex =
+        ((absoluteIndex % 7) + 7) % 7;
+    const octave = Math.floor(absoluteIndex / 7);
 
-    if (clefElement) {
-        clefElement.textContent =
-            currentClef === "bass" ? "𝄢" : "𝄞";
-    }
-
-    if (clefControl) {
-        clefControl.textContent =
-            currentClef === "bass" ? "Bass Clef" : "Treble Clef";
-    }
+    return `${letterNames[letterIndex]}${octave}`;
 }
 
 function refreshNotePitches() {
@@ -223,6 +219,7 @@ function refreshNotePitches() {
         }
     });
 }
+
 
 // ========================================
 // TIME SIGNATURE
