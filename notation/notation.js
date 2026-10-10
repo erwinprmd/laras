@@ -677,150 +677,323 @@ function createNewProject() {
 // VALIDATE IMPORTED PROJECT
 // ========================================
 
+
 function normalizeProject(data) {
-    if (!data || data.format !== "LARAS") {
-        throw new Error("File bukan komposisi LARAS yang valid.");
-    }
-
-    if (!Array.isArray(data.notes) || !Array.isArray(data.measures)) {
-        throw new Error("Data notasi atau birama tidak valid.");
-    }
-
-    const signature = data.timeSignature || {
-        beats: 4,
-        beatUnit: 4
-    };
+    // =========================
+    // 1. VALIDATE PROJECT
+    // =========================
 
     if (
+        !data ||
+        typeof data !== "object" ||
+        Array.isArray(data) ||
+        data.format !== "LARAS"
+    ) {
+        throw new Error(
+            "File bukan komposisi LARAS yang valid."
+        );
+    }
+
+    if (
+        !Array.isArray(data.notes) ||
+        !Array.isArray(data.measures)
+    ) {
+        throw new Error(
+            "Data notasi atau birama tidak valid."
+        );
+    }
+
+    // =========================
+    // 2. TIME SIGNATURE
+    // =========================
+
+    const signature = data.timeSignature == null
+        ? { beats: 4, beatUnit: 4 }
+        : data.timeSignature;
+
+    if (
+        !signature ||
+        typeof signature !== "object" ||
+        Array.isArray(signature) ||
         ![2, 3, 4].includes(signature.beats) ||
         signature.beatUnit !== 4
     ) {
-        throw new Error("Time signature belum didukung.");
+        throw new Error(
+            "Time signature belum didukung."
+        );
     }
 
-    const clef = data.clef === "bass" ? "bass" : "treble";
+    const timeSignature = {
+        beats: signature.beats,
+        beatUnit: signature.beatUnit
+    };
 
-    const normalizedMeasures = data.measures
-        .filter(measure =>
-            measure &&
-            Number.isInteger(measure.number) &&
-            measure.number >= 1 &&
-            Number.isFinite(measure.startX) &&
-            Number.isFinite(measure.endX) &&
-            measure.endX > measure.startX
-        )
-        .map(measure => ({
-            number: measure.number,
-            startX: measure.startX,
-            endX: measure.endX
-        }))
-        .sort((a, b) => a.number - b.number);
+    // =========================
+    // 3. CLEF
+    // =========================
 
-    if (!normalizedMeasures.length) {
-        throw new Error("Tidak ditemukan birama yang valid.");
+    // Keep the existing fallback for older project files.
+    const clef = data.clef === "bass"
+        ? "bass"
+        : "treble";
+
+    // =========================
+    // 4. NORMALIZE MEASURES
+    // =========================
+
+    if (data.measures.length === 0) {
+        throw new Error(
+            "Tidak ditemukan birama yang valid."
+        );
     }
 
-    const normalizedNotes = data.notes.map(note => {
-        if (
-            !note ||
-            !Object.hasOwn(durationBeats, note.duration) ||
-            !Number.isInteger(note.measure) ||
-            note.measure < 1 ||
-            !Number.isFinite(note.beatPosition) ||
-            note.beatPosition < 0 ||
-            !Number.isFinite(note.y)
-        ) {
-            throw new Error("Data salah satu not tidak valid.");
+    const measureNumbers = new Set();
+
+    const normalizedMeasures = data.measures.map(
+        (measure, index) => {
+            if (
+                !measure ||
+                typeof measure !== "object" ||
+                !Number.isInteger(measure.number) ||
+                measure.number < 1 ||
+                !Number.isFinite(measure.startX) ||
+                !Number.isFinite(measure.endX) ||
+                measure.endX <= measure.startX
+            ) {
+                throw new Error(
+                    `Data birama ke-${index + 1} tidak valid.`
+                );
+            }
+
+            if (measureNumbers.has(measure.number)) {
+                throw new Error(
+                    `Nomor birama ${measure.number} terduplikasi.`
+                );
+            }
+
+            measureNumbers.add(measure.number);
+
+            return {
+                number: measure.number,
+                startX: measure.startX,
+                endX: measure.endX
+            };
         }
+    ).sort((a, b) => a.number - b.number);
 
-        const isRest = Boolean(note.isRest);
-        const pitch = isRest ? null : note.pitch;
+    // =========================
+    // 5. NORMALIZE NOTES
+    // =========================
 
-        if (!isRest && !pitchNames.includes(pitch)) {
-            throw new Error("Pitch pada file tidak valid.");
+    const normalizedNotes = data.notes.map(
+        (note, index) => {
+            if (
+                !note ||
+                typeof note !== "object" ||
+                Array.isArray(note)
+            ) {
+                throw new Error(
+                    `Data not ke-${index + 1} tidak valid.`
+                );
+            }
+
+            if (
+                typeof durationBeats !== "object" ||
+                durationBeats === null ||
+                !Object.prototype.hasOwnProperty.call(
+                    durationBeats,
+                    note.duration
+                ) ||
+                !Number.isFinite(durationBeats[note.duration]) ||
+                durationBeats[note.duration] <= 0
+            ) {
+                throw new Error(
+                    `Durasi not ke-${index + 1} tidak valid.`
+                );
+            }
+
+            if (
+                !Number.isInteger(note.measure) ||
+                note.measure < 1 ||
+                !Number.isFinite(note.beatPosition) ||
+                note.beatPosition < 0 ||
+                !Number.isFinite(note.y)
+            ) {
+                throw new Error(
+                    `Posisi not ke-${index + 1} tidak valid.`
+                );
+            }
+
+            if (
+                note.isRest !== undefined &&
+                typeof note.isRest !== "boolean"
+            ) {
+                throw new Error(
+                    `Jenis not ke-${index + 1} tidak valid.`
+                );
+            }
+
+            const isRest = note.isRest === true;
+            const pitch = isRest ? null : note.pitch;
+
+            if (
+                !isRest &&
+                (
+                    typeof pitch !== "string" ||
+                    !pitchNames.includes(pitch)
+                )
+            ) {
+                throw new Error(
+                    `Pitch not ke-${index + 1} tidak valid.`
+                );
+            }
+
+            return {
+                x: Number.isFinite(note.x)
+                    ? note.x
+                    : 0,
+                y: note.y,
+                pitch,
+                duration: note.duration,
+                beats: durationBeats[note.duration],
+                beatPosition: note.beatPosition,
+                measure: note.measure,
+                isRest,
+                element: null
+            };
         }
-
-        return {
-            x: Number.isFinite(note.x) ? note.x : 0,
-            y: note.y,
-            pitch,
-            duration: note.duration,
-            beats: durationBeats[note.duration],
-            beatPosition: note.beatPosition,
-            measure: note.measure,
-            isRest,
-            element: null
-        };
-    });
-
-    const maxMeasure = Math.max(
-        2,
-        ...normalizedMeasures.map(measure => measure.number),
-        ...normalizedNotes.map(note => note.measure)
     );
 
-    if (maxMeasure > 500) {
-        throw new Error("File memiliki terlalu banyak birama.");
-    }
+    // =========================
+    // 6. DETERMINE MEASURE RANGE
+    // =========================
+
+    
+let maxMeasure = 2;
+
+for (const measure of normalizedMeasures) {
+    maxMeasure = Math.max(
+        maxMeasure,
+        measure.number
+    );
+}
+
+for (const note of normalizedNotes) {
+    maxMeasure = Math.max(
+        maxMeasure,
+        note.measure
+    );
+}
+
+if (maxMeasure > 500) {
+    throw new Error(
+        "File memiliki terlalu banyak birama."
+    );
+}
+
+
+    // =========================
+    // 7. FILL MISSING MEASURES
+    // =========================
 
     const firstMeasure = normalizedMeasures[0];
-    const width = firstMeasure.endX - firstMeasure.startX;
-    const measureMap = new Map();
+    const measureWidth =
+        firstMeasure.endX - firstMeasure.startX;
 
-    normalizedMeasures.forEach(measure => {
-        measureMap.set(measure.number, measure);
-    });
+    const measureMap = new Map(
+        normalizedMeasures.map(measure => [
+            measure.number,
+            measure
+        ])
+    );
 
-    for (let number = 1; number <= maxMeasure; number++) {
+    for (
+        let number = 1;
+        number <= maxMeasure;
+        number++
+    ) {
         if (!measureMap.has(number)) {
-            const startX = firstMeasure.startX + (number - 1) * width;
+            // Anchor generated measures to the actual
+            // number of the first existing measure.
+            const startX =
+                firstMeasure.startX +
+                (number - firstMeasure.number) *
+                    measureWidth;
 
             measureMap.set(number, {
                 number,
                 startX,
-                endX: startX + width
+                endX: startX + measureWidth
             });
         }
     }
 
-    const finalMeasures = Array.from(measureMap.values())
-        .sort((a, b) => a.number - b.number);
+    const finalMeasures = Array.from(
+        measureMap.values()
+    ).sort((a, b) => a.number - b.number);
 
-    // Verify that notes do not overlap or exceed measure capacity.
+    // =========================
+    // 8. VALIDATE RHYTHM
+    // =========================
+
+    const notesByMeasure = new Map();
+
+    for (const note of normalizedNotes) {
+        if (!notesByMeasure.has(note.measure)) {
+            notesByMeasure.set(note.measure, []);
+        }
+
+        notesByMeasure.get(note.measure).push(note);
+    }
+
     for (const measure of finalMeasures) {
-        const measureNotes = normalizedNotes
-            .filter(note => note.measure === measure.number)
-            .sort((a, b) => a.beatPosition - b.beatPosition);
+        const measureNotes =
+            notesByMeasure.get(measure.number) || [];
+
+        measureNotes.sort(
+            (a, b) => a.beatPosition - b.beatPosition
+        );
 
         let previousEnd = 0;
 
         for (const note of measureNotes) {
+            const noteEnd =
+                note.beatPosition + note.beats;
+
             if (
-                note.beatPosition + note.beats > signature.beats ||
-                note.beatPosition < previousEnd
+                note.beatPosition < previousEnd ||
+                noteEnd > timeSignature.beats
             ) {
                 throw new Error(
                     `Susunan ketukan pada birama ${measure.number} tidak valid.`
                 );
             }
 
-            previousEnd = note.beatPosition + note.beats;
+            previousEnd = noteEnd;
         }
     }
 
+    // =========================
+    // 9. RETURN NORMALIZED PROJECT
+    // =========================
+
     return {
-        name: typeof data.name === "string" && data.name.trim()
-            ? data.name.trim()
-            : "Imported composition",
+        name:
+            typeof data.name === "string" &&
+            data.name.trim()
+                ? data.name.trim()
+                : "Imported composition",
+
         clef,
-        timeSignature: {
-            beats: signature.beats,
-            beatUnit: signature.beatUnit
-        },
+
+        timeSignature,
+
         measures: finalMeasures,
+
         notes: normalizedNotes
     };
 }
+
 
 // ========================================
 // LOAD PROJECT
