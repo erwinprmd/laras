@@ -193,11 +193,13 @@ function getNoteX(measureNumber, beatPosition) {
 function getPitchFromY(y) {
     const step = Math.round((y - lineSpacing) / staffStep);
 
-    return pitchNames[((3 - step) % 7 + 7) % 7];
-}
+    // Treble clef: garis paling atas adalah F.
+    // Bass clef: garis paling atas adalah A.
+    const topLineIndex = currentClef === "bass" ? 5 : 3;
 
-function getSnappedY(y) {
-    return Math.round(y / staffStep) * staffStep;
+    return pitchNames[
+        ((topLineIndex - step) % 7 + 7) % 7
+    ];
 }
 
 // =========================
@@ -928,3 +930,114 @@ if (importProjectFile) {
 }
 
 updateProjectStatus(currentProjectName);
+
+
+// =========================
+// CLEF & TIME SIGNATURE
+// =========================
+
+let currentClef = "treble";
+
+const clefControl = document.getElementById("trebleClef");
+const signatureControl = document.getElementById("timeSignature");
+
+function renderClef() {
+    const clefElement = document.querySelector(".clef");
+
+    if (clefElement) {
+        clefElement.textContent =
+            currentClef === "bass" ? "𝄢" : "𝄞";
+    }
+
+    if (clefControl) {
+        clefControl.textContent =
+            currentClef === "bass" ? "Bass Clef" : "Treble Clef";
+    }
+}
+
+function renderTimeSignature() {
+    const signature = document.querySelector(".time-signature");
+
+    if (signature) {
+        signature.innerHTML = `
+            <span>${timeSignature.beats}</span>
+            <span>${timeSignature.beatUnit}</span>
+        `;
+    }
+
+    if (signatureControl) {
+        signatureControl.textContent =
+            `${timeSignature.beats}/${timeSignature.beatUnit}`;
+    }
+}
+
+function refreshNotePitches() {
+    notes.forEach(note => {
+        if (note.isRest) return;
+
+        note.pitch = getPitchFromY(note.y);
+
+        if (note.element) {
+            note.element.dataset.pitch = note.pitch;
+        }
+    });
+}
+
+if (clefControl) {
+    clefControl.addEventListener("click", () => {
+        currentClef =
+            currentClef === "treble" ? "bass" : "treble";
+
+        renderClef();
+        refreshNotePitches();
+
+        console.log("Clef changed:", currentClef);
+    });
+}
+
+// Only allow time signatures supported by the current engine.
+const supportedTimeSignatures = [
+    { beats: 2, beatUnit: 4 },
+    { beats: 3, beatUnit: 4 },
+    { beats: 4, beatUnit: 4 }
+];
+
+if (signatureControl) {
+    signatureControl.addEventListener("click", () => {
+        const currentIndex = supportedTimeSignatures.findIndex(
+            signature =>
+                signature.beats === timeSignature.beats &&
+                signature.beatUnit === timeSignature.beatUnit
+        );
+
+        const nextIndex =
+            (currentIndex + 1) % supportedTimeSignatures.length;
+
+        const nextSignature =
+            supportedTimeSignatures[nextIndex];
+
+        const hasOverflow = measures.some(measure =>
+            getMeasureBeats(measure.number) > nextSignature.beats
+        );
+
+        if (hasOverflow) {
+            alert(
+                `Birama ${nextSignature.beats}/4 tidak dapat digunakan karena ada birama yang berisi lebih dari ${nextSignature.beats} ketukan.`
+            );
+            return;
+        }
+
+        timeSignature.beats = nextSignature.beats;
+        timeSignature.beatUnit = nextSignature.beatUnit;
+
+        renderTimeSignature();
+        reflowNotes();
+
+        console.log("Time signature changed:", {
+            ...timeSignature
+        });
+    });
+}
+
+renderClef();
+renderTimeSignature();
