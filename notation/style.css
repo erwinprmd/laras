@@ -254,6 +254,35 @@ body {
     left: 0;
 }
 
+
+/* =========================
+   REST SYMBOLS
+========================= */
+
+.rest {
+    position: absolute;
+
+    width: 18px;
+    height: 28px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--text);
+
+    font-family: "Times New Roman", serif;
+    font-size: 30px;
+    line-height: 1;
+
+    transform: translate(-50%, -50%);
+
+    z-index: 3;
+    user-select: none;
+    cursor: pointer;
+}
+
+
 footer {
     padding: 40px 5%;
 
