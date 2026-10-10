@@ -563,6 +563,7 @@ function buildProjectData() {
         format: "LARAS",
         version: 1,
         name: currentProjectName,
+        clef: currentClef,
         timeSignature: { ...timeSignature },
         measures: measures.map(measure => ({ ...measure })),
         notes: notes.map(note => ({
